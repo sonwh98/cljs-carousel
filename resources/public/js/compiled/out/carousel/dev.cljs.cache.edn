@@ -1,0 +1,2 @@
+;; Analyzed by ClojureScript 0.0-3308
+{:use-macros nil, :excludes #{}, :name carousel.dev, :imports nil, :requires {carousel.core carousel.core, fw figwheel.client, figwheel.client figwheel.client}, :uses nil, :require-macros nil, :cljs.analyzer/constants {:seen #{:on-jsload :websocket-url}, :order [:websocket-url :on-jsload]}, :doc nil}
