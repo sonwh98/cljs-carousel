@@ -127,17 +127,17 @@
 
     (if-not (empty? children)
       (doseq [n (nth node-as-vec 2)
-              :let [a-child-node (make-nodes n)]]
+              :let [a-child-node (-> n make-nodes meta :node)]]
         (.. node (addChild a-child-node))))
 
-    node))
+    (with-meta node-as-vec {:node node})))
 
 
 (defn Carousel []
   (let [simulation (PhysicsEngine.)
         context (.. FamousEngine (createScene "body"))
         tree (make-tree)
-        root-node (make-nodes tree)
+        root-node (-> tree make-nodes meta :node)
         _ (.. context (addChild root-node))
         children (.. root-node getChildren)
         
