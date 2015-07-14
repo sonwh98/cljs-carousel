@@ -96,7 +96,7 @@
                                              :border       "2px solid white"
                                              :boxSizing    "border-box"}]]}])]]])
 
-(defn make-nodes [node-as-vec]
+(defn make-scene-graph [node-as-vec]
   (let [attributes (nth node-as-vec 1)
         node (Node.)
         size-mode (clj->js (:size-mode attributes))
@@ -127,7 +127,7 @@
 
     (if-not (empty? children)
       (doseq [n (nth node-as-vec 2)
-              :let [a-child-node (-> n make-nodes meta :node)]]
+              :let [a-child-node (-> n make-scene-graph meta :node)]]
         (.. node (addChild a-child-node))))
 
     (with-meta node-as-vec {:node node})))
@@ -137,7 +137,7 @@
   (let [simulation (PhysicsEngine.)
         context (.. FamousEngine (createScene "body"))
         tree (make-tree)
-        root-node (-> tree make-nodes meta :node)
+        root-node (-> tree make-scene-graph meta :node)
         _ (.. context (addChild root-node))
         children (.. root-node getChildren)
         
