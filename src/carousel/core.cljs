@@ -38,64 +38,64 @@
                   "12_-_A_caza_de_dientes_thumb.jpg"
                   "13_-_Estan_calientes_thumb.jpg"])
 
-(def scene-graph   [:node {:id "root"}
-                    [[:node {:id            "back"
-                             :size-mode     [ABSOLUTE ABSOLUTE]
-                             :absolute-size [40 40]
-                             :position      [40 0 0]
-                             :align         [0 0.5 0]
-                             :mount-point   [0 0.5 0]
-                             :components    [[:DOMElement {:color         "white"
-                                                           :fontSize      "40px"
-                                                           :lineHeight    "40px"
-                                                           :cursor        "pointer"
-                                                           :textHighlight "none"
-                                                           :zIndex        "2"
-                                                           :content       "<"}]]}]
-                     [:node {:id            "next"
-                             :size-mode     [ABSOLUTE ABSOLUTE]
-                             :absolute-size [40 40]
-                             :position      [-40 0 0]
-                             :align         [1 0.5 0]
-                             :mount-point   [1 0.5 0]
-                             :components    [[:DOMElement {:color         "white"
-                                                           :fontSize      "40px"
-                                                           :lineHeight    "40px"
-                                                           :cursor        "pointer"
-                                                           :textHighlight "none"
-                                                           :zIndex        "2"
-                                                           :content       ">"}]]}]
+(def scene-graph [:node {:id "root"}
+                  [[:node {:id            "back"
+                           :size-mode     [ABSOLUTE ABSOLUTE]
+                           :absolute-size [40 40]
+                           :position      [40 0 0]
+                           :align         [0 0.5 0]
+                           :mount-point   [0 0.5 0]
+                           :components    [[:DOMElement {:color         "white"
+                                                         :fontSize      "40px"
+                                                         :lineHeight    "40px"
+                                                         :cursor        "pointer"
+                                                         :textHighlight "none"
+                                                         :zIndex        "2"
+                                                         :content       "<"}]]}]
+                   [:node {:id            "next"
+                           :size-mode     [ABSOLUTE ABSOLUTE]
+                           :absolute-size [40 40]
+                           :position      [-40 0 0]
+                           :align         [1 0.5 0]
+                           :mount-point   [1 0.5 0]
+                           :components    [[:DOMElement {:color         "white"
+                                                         :fontSize      "40px"
+                                                         :lineHeight    "40px"
+                                                         :cursor        "pointer"
+                                                         :textHighlight "none"
+                                                         :zIndex        "2"
+                                                         :content       ">"}]]}]
 
-                     [:node {:id "pager"
-                             :align [0.5 0.5 0]
-                             :mount-point [0.5 0.5 0]}
-                      (for [image-name image-names
-                              :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
-                                    image-url (str url-base image-name)
-                                    url (str "url('" image-url "')")]]
-                          [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
-                                  :absolute-size [500 500 0]
-                                  :align         [0.5 0.5]
-                                  :mount-point   [0.5 0.5]
-                                  :origin        [0.5 0.5]
-                                  :components    [[:DOMElement {:backgroundImage   url
-                                                                :background-repeat "no-repeat"
-                                                                :background-size   "cover"}]]}])]
-                     [:node {:id            "dots"
-                             :size-mode     [ABSOLUTE ABSOLUTE]
-                             :absolute-size [20 20]
-                             :position      [0 -50 0]
-                             :align         [0.5 1 0]
-                             :mount-point   [0.5 1 0]}
-                      (for [i (range 13)]
-                        [:node {:size-mode     [ABSOLUTE ABSOLUTE]
-                                :absolute-size [10 10]
-                                :components    [[:DOMElement {:borderRadius "15px"
-                                                              :border       "2px solid white"
-                                                              :backgroundColor (if (= i 0)
-                                                                                 "white"
-                                                                                 "transparent")
-                                                              :boxSizing    "border-box"}]]}])]]])
+                   [:node {:id "pager"
+                           :align [0.5 0.5 0]
+                           :mount-point [0.5 0.5 0]}
+                    (for [image-name image-names
+                          :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
+                                image-url (str url-base image-name)
+                                url (str "url('" image-url "')")]]
+                      [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                              :absolute-size [500 500 0]
+                              :align         [0.5 0.5]
+                              :mount-point   [0.5 0.5]
+                              :origin        [0.5 0.5]
+                              :components    [[:DOMElement {:backgroundImage   url
+                                                            :background-repeat "no-repeat"
+                                                            :background-size   "cover"}]]}])]
+                   [:node {:id            "dots"
+                           :size-mode     [ABSOLUTE ABSOLUTE]
+                           :absolute-size [20 20]
+                           :position      [0 -50 0]
+                           :align         [0.5 1 0]
+                           :mount-point   [0.5 1 0]}
+                    (for [i (range 13)]
+                      [:node {:size-mode     [ABSOLUTE ABSOLUTE]
+                              :absolute-size [10 10]
+                              :components    [[:DOMElement {:borderRadius "15px"
+                                                            :border       "2px solid white"
+                                                            :backgroundColor (if (= i 0)
+                                                                               "white"
+                                                                               "transparent")
+                                                            :boxSizing    "border-box"}]]}])]]])
 
 (defn make-nodes [node-as-vec]
   (let [attributes (nth node-as-vec 1)
