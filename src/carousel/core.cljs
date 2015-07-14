@@ -25,7 +25,7 @@
 
 (defonce ABSOLUTE (.. Size -ABSOLUTE))
 
-(defn make-tree []
+(defn scene-graph []
   [:node {:id "root"}
    [[:node {:id            "back"
             :size-mode     [ABSOLUTE ABSOLUTE]
@@ -139,7 +139,7 @@
 (defn Carousel []
   (let [simulation (PhysicsEngine.)
         context (.. FamousEngine (createScene "body"))
-        tree (make-tree)
+        tree (scene-graph)
         root-node (-> tree make-scene-graph meta :node)
         _ (.. context (addChild root-node))
         children (.. root-node getChildren)
