@@ -87,7 +87,7 @@
                            :position      [0 -50 0]
                            :align         [0.5 1 0]
                            :mount-point   [0.5 1 0]}
-                    (for [i (range 13)]
+                    (for [i (-> image-names count range)]
                       [:node {:size-mode     [ABSOLUTE ABSOLUTE]
                               :absolute-size [10 10]
                               :components    [[:DOMElement {:borderRadius "15px"
