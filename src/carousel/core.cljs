@@ -91,8 +91,8 @@
             :mount-point   [0.5 1 0]}
      (for [i (range 13)]
        [:node {:size-mode     [ABSOLUTE ABSOLUTE]
-               :absolute-size [5 5]
-               :components    [[:DOMElement {:borderRadius "5px"
+               :absolute-size [10 10]
+               :components    [[:DOMElement {:borderRadius "15px"
                                              :border       "2px solid white"
                                              :boxSizing    "border-box"}]]}])]]])
 
