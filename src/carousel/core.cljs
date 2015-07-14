@@ -97,7 +97,7 @@
                                                                                "transparent")
                                                             :boxSizing    "border-box"}]]}])]]])
 
-(defn make-nodes [node-as-vec]
+(defn initialize [node-as-vec]
   (let [attributes (nth node-as-vec 1)
         node (Node.)
         size-mode (clj->js (:size-mode attributes))
@@ -128,7 +128,7 @@
 
     (if-not (empty? children)
       (doseq [n (nth node-as-vec 2)
-              :let [a-child-node (-> n make-nodes meta :node)]]
+              :let [a-child-node (-> n initialize meta :node)]]
         (.. node (addChild a-child-node))))
 
     (with-meta node-as-vec {:node node})))
@@ -139,7 +139,8 @@
 
 (defn Carousel []
   (let [simulation (PhysicsEngine.)
-        root-node (-> scene-graph make-nodes meta :node)
+        scene-graph (initialize scene-graph)
+        root-node (->  scene-graph  meta :node)
         children (.. root-node getChildren)
         
         back-node (nth children 0)
