@@ -135,8 +135,9 @@
             (.. dom-element (setProperty name value))))))
 
     (if-not (empty? children)
-      (doseq [n (nth node-as-vec 2)
-              :let [a-child-node (-> n initialize meta :node)]]
+      (doseq [c children
+              :let [child-node (initialize c)
+                    a-child-node (-> child-node meta :node)]]
         (.. node (addChild a-child-node))))
 
     (with-meta node-as-vec {:node node})))
