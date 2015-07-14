@@ -94,6 +94,9 @@
                :absolute-size [10 10]
                :components    [[:DOMElement {:borderRadius "15px"
                                              :border       "2px solid white"
+                                             :backgroundColor (if (= i 0)
+                                                                "white"
+                                                                "transparent")
                                              :boxSizing    "border-box"}]]}])]]])
 
 (defn make-scene-graph [node-as-vec]
