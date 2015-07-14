@@ -69,8 +69,7 @@
                      [:node {:id "pager"
                              :align [0.5 0.5 0]
                              :mount-point [0.5 0.5 0]}
-                      (let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"]
-                        (for [image-name image-names
+                      (for [image-name image-names
                               :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
                                     image-url (str url-base image-name)
                                     url (str "url('" image-url "')")]]
@@ -81,7 +80,7 @@
                                   :origin        [0.5 0.5]
                                   :components    [[:DOMElement {:backgroundImage   url
                                                                 :background-repeat "no-repeat"
-                                                                :background-size   "cover"}]]}]))]
+                                                                :background-size   "cover"}]]}])]
                      [:node {:id            "dots"
                              :size-mode     [ABSOLUTE ABSOLUTE]
                              :absolute-size [20 20]
@@ -98,7 +97,7 @@
                                                                                  "transparent")
                                                               :boxSizing    "border-box"}]]}])]]])
 
-(defn render-scene-graph [node-as-vec]
+(defn make-nodes [node-as-vec]
   (let [attributes (nth node-as-vec 1)
         node (Node.)
         size-mode (clj->js (:size-mode attributes))
@@ -129,17 +128,18 @@
 
     (if-not (empty? children)
       (doseq [n (nth node-as-vec 2)
-              :let [a-child-node (-> n render-scene-graph meta :node)]]
+              :let [a-child-node (-> n make-nodes meta :node)]]
         (.. node (addChild a-child-node))))
 
     (with-meta node-as-vec {:node node})))
 
+(defn render-scene-graph [root-node]
+  (let [context (.. FamousEngine (createScene "body")) ]
+    (.. context (addChild root-node))))
 
 (defn Carousel []
   (let [simulation (PhysicsEngine.)
-        context (.. FamousEngine (createScene "body"))
-        root-node (-> scene-graph render-scene-graph meta :node)
-        _ (.. context (addChild root-node))
+        root-node (-> scene-graph make-nodes meta :node)
         children (.. root-node getChildren)
         
         back-node (nth children 0)
@@ -184,7 +184,7 @@
                                                                        0)))))})
         _ (.. dot-container-node (addComponent resize))
         current-index (atom 0)]
-
+    (render-scene-graph root-node)
     (add-watch current-index :watcher (fn [key atom old-index new-index]
                                         (let [old-page-node (nth pages old-index)
                                               old-page-physics (node-to-physics old-page-node)
