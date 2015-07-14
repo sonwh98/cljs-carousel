@@ -70,24 +70,24 @@
                            :align [0.5 0.5 0]
                            :mount-point [0.5 0.5 0]}
                     (for [image-name image-names
-                          :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
-                                image-url (str url-base image-name)
-                                url (str "url('" image-url "')")
-                                box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
-                                anchor (Vec3. 1 0 0)
-                                quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                      [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
-                              :absolute-size [500 500 0]
-                              :align         [0.5 0.5]
-                              :mount-point   [0.5 0.5]
-                              :origin        [0.5 0.5]
-                              :components    [[:DOMElement {:backgroundImage   url
-                                                            :background-repeat "no-repeat"
-                                                            :background-size   "cover"}]]
-                              :physics {:box box
-                                        :anchor anchor
-                                        :spring (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
-                                        :quaternion quaternion
+                               :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
+                                     image-url (str url-base image-name)
+                                     url (str "url('" image-url "')")
+                                     box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
+                                     anchor (Vec3. 1 0 0)
+                                     quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
+                           [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                                   :absolute-size [500 500 0]
+                                   :align         [0.5 0.5]
+                                   :mount-point   [0.5 0.5]
+                                   :origin        [0.5 0.5]
+                                   :components    [[:DOMElement {:backgroundImage   url
+                                                                 :background-repeat "no-repeat"
+                                                                 :background-size   "cover"}]]
+                                   :physics {:box box
+                                             :anchor anchor
+                                             :spring (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
+                                             :quaternion quaternion
                                         :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}}])]
                    [:node {:id            "dots"
                            :size-mode     [ABSOLUTE ABSOLUTE]
@@ -105,7 +105,7 @@
                                                                                "transparent")
                                                             :boxSizing    "border-box"}]]}])]]])
 
-(defn initialize [node-as-vec]
+(defn attach-famous-node-to-scene-graph [node-as-vec]
   (let [attributes (nth node-as-vec 1)
         node (Node.)
         size-mode (clj->js (:size-mode attributes))
@@ -114,8 +114,7 @@
         position (clj->js (:position attributes))
         components (:components attributes)
         mount-point (clj->js (:mount-point attributes))
-        origin (clj->js (:origin attributes))
-        children (get-children node-as-vec)]
+        origin (clj->js (:origin attributes))]
     (.apply (.-setSizeMode node) node size-mode)
     (.apply (.-setAbsoluteSize node) node absolute-size)
     (.apply (.-setAlign node) node align)
@@ -134,13 +133,15 @@
             (.. dom-element (setContent value))
             (.. dom-element (setProperty name value))))))
 
-    (if-not (empty? children)
-      (doseq [c children
-              :let [child-node (initialize c)
-                    a-child-node (-> child-node meta :node)]]
-        (.. node (addChild a-child-node))))
-
-    (with-meta node-as-vec {:node node})))
+    (-> node-as-vec
+        (update-in [2] (fn [children]
+                         (vec (for [c children
+                                    :let [child-node (attach-famous-node-to-scene-graph c)
+                                          a-child-node (-> child-node meta :node)]]
+                                (do
+                                  (.. node (addChild a-child-node))
+                                  child-node)))))
+        (with-meta {:node node}))))
 
 (defn render-scene-graph [root-node]
   (let [context (.. FamousEngine (createScene "body")) ]
@@ -148,17 +149,16 @@
 
 (defn Carousel []
   (let [simulation (PhysicsEngine.)
-        scene-graph (initialize scene-graph)
+        scene-graph (attach-famous-node-to-scene-graph scene-graph)
         root-node (->  scene-graph  meta :node)
-        children (.. root-node getChildren)
-        
-        back-node (nth children 0)
+
+        back-node (-> scene-graph (get-in [2 0]) meta :node ) 
         back-clicks (events->chan back-node "tap")
 
-        next-node (nth children 1)
+        next-node (-> scene-graph (get-in [2 1]) meta :node )
         next-clicks (events->chan next-node "tap")
 
-        pager-node (nth children 2)
+        pager-node (-> scene-graph (get-in [2 2]) meta :node )
         pages (.. pager-node getChildren)
         node-to-physics (into {}  (for [page-node pages
                                         :let [box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
@@ -173,7 +173,7 @@
                                                 :quaternion quaternion
                                                 :rotational-spring rotational-spring}]))
         
-        dot-container-node (last children)
+        dot-container-node (-> scene-graph (get-in [2 3]) meta :node )
         dot-nodes (.. dot-container-node getChildren)
         resize (clj->js {:onSizeChange (fn [^Float32Array size]
                                          "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
