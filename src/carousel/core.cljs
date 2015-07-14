@@ -147,18 +147,25 @@
   (let [context (.. FamousEngine (createScene "body")) ]
     (.. context (addChild root-node))))
 
+(defn get-node-by-id [node id]
+  (if (= (-> (get-in node [1]) :id) id )
+    node
+    (first (filter #(not (nil? %))
+                   (for [child (get-in node [2])]
+                     (get-node-by-id child id))))))
+
 (defn Carousel []
   (let [simulation (PhysicsEngine.)
         scene-graph (attach-famous-node-to-scene-graph scene-graph)
         root-node (->  scene-graph  meta :node)
 
-        back-node (-> scene-graph (get-in [2 0]) meta :node ) 
+        back-node (-> (get-node-by-id scene-graph "back") meta :node)
         back-clicks (events->chan back-node "tap")
 
-        next-node (-> scene-graph (get-in [2 1]) meta :node )
+        next-node (-> (get-node-by-id scene-graph "next") meta :node)
         next-clicks (events->chan next-node "tap")
 
-        pager-node (-> scene-graph (get-in [2 2]) meta :node )
+        pager-node (-> (get-node-by-id scene-graph "pager") meta :node)
         pages (.. pager-node getChildren)
         node-to-physics (into {}  (for [page-node pages
                                         :let [box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
