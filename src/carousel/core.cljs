@@ -72,7 +72,10 @@
                     (for [image-name image-names
                           :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
                                 image-url (str url-base image-name)
-                                url (str "url('" image-url "')")]]
+                                url (str "url('" image-url "')")
+                                box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
+                                anchor (Vec3. 1 0 0)
+                                quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
                       [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
                               :absolute-size [500 500 0]
                               :align         [0.5 0.5]
@@ -80,7 +83,12 @@
                               :origin        [0.5 0.5]
                               :components    [[:DOMElement {:backgroundImage   url
                                                             :background-repeat "no-repeat"
-                                                            :background-size   "cover"}]]}])]
+                                                            :background-size   "cover"}]]
+                              :physics {:box box
+                                        :anchor anchor
+                                        :spring (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
+                                        :quaternion quaternion
+                                        :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}}])]
                    [:node {:id            "dots"
                            :size-mode     [ABSOLUTE ABSOLUTE]
                            :absolute-size [20 20]
