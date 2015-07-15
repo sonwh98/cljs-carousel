@@ -159,10 +159,10 @@
         scene-graph (attach-famous-node-to-scene-graph scene-graph)
         root-node (->  scene-graph  meta :node)
 
-        back-node (-> (get-node-by-id scene-graph "back") meta :node)
+        back-node (get-node-by-id scene-graph "back") 
         back-clicks (events->chan back-node "tap")
 
-        next-node (-> (get-node-by-id scene-graph "next") meta :node)
+        next-node (get-node-by-id scene-graph "next")
         next-clicks (events->chan next-node "tap")
 
         pager-node (-> (get-node-by-id scene-graph "pager") meta :node)
