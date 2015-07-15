@@ -143,10 +143,6 @@
                                   child-node)))))
         (with-meta {:node node}))))
 
-(defn render-scene-graph [root-node]
-  (let [context (.. FamousEngine (createScene "body")) ]
-    (.. context (addChild root-node))))
-
 (defn get-node-by-id [node id]
   (if (= (-> (get-in node [1]) :id) id )
     node
@@ -154,10 +150,39 @@
                    (for [child (get-in node [2])]
                      (get-node-by-id child id))))))
 
-(defn Carousel []
+(defn render-scene-graph [scene-graph]
   (let [simulation (PhysicsEngine.)
-        scene-graph (attach-famous-node-to-scene-graph scene-graph)
-        root-node (->  scene-graph  meta :node)
+        root-node (-> scene-graph meta :node)
+        pager-node (get-node-by-id scene-graph "pager")
+        pages (pager-node 2)
+        
+        context (.. FamousEngine (createScene "body")) ]
+    (.. context (addChild root-node))
+
+    (doseq [page pages
+            :let [physics (-> page second :physics)]]
+      (.. simulation (add (:box physics)  (:spring physics) (:rotational-spring physics))))
+    
+    (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
+                                                          (.. simulation (update time))
+                                                          (doseq [page pages
+                                                                  :let [page-node (-> page meta :node)
+                                                                        physics (-> page second :physics)
+                                                                        physics-transform (.. simulation (getTransform (:box physics)))
+                                                                        p (.. physics-transform -position)
+                                                                        r (.. physics-transform -rotation)]]
+                                                            (.. page-node
+                                                                (setPosition (* 0 1446) 0 0)
+                                                                (setRotation (nth r 0) (nth r 1) (nth r 2) (nth r 3))))
+
+                                                          (this-as this
+                                                                   (.. FamousEngine (requestUpdateOnNextTick this)))
+                                                          )})))
+
+    ))
+
+(defn Carousel []
+  (let [scene-graph (attach-famous-node-to-scene-graph scene-graph)
 
         back-node (get-node-by-id scene-graph "back") 
         back-clicks (events->chan back-node "tap")
@@ -165,21 +190,9 @@
         next-node (get-node-by-id scene-graph "next")
         next-clicks (events->chan next-node "tap")
 
-        pager-node (-> (get-node-by-id scene-graph "pager") meta :node)
-        pages (.. pager-node getChildren)
-        node-to-physics (into {}  (for [page-node pages
-                                        :let [box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
-                                              anchor (Vec3. 1 0 0)
-                                              spring (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
-                                              quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))
-                                              rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))
-                                              _ (.. simulation (add box spring rotational-spring))]]
-                                    [page-node {:box box
-                                                :anchor anchor
-                                                :spring spring
-                                                :quaternion quaternion
-                                                :rotational-spring rotational-spring}]))
-        
+        pager-node (get-node-by-id scene-graph "pager")
+        pages (pager-node 2)
+
         dot-container-node (-> scene-graph (get-in [2 3]) meta :node )
         dot-nodes (.. dot-container-node getChildren)
         resize (clj->js {:onSizeChange (fn [^Float32Array size]
@@ -201,13 +214,13 @@
                                                                        0)))))})
         _ (.. dot-container-node (addComponent resize))
         current-index (atom 0)]
-    (render-scene-graph root-node)
+    (render-scene-graph scene-graph)
     (add-watch current-index :watcher (fn [key atom old-index new-index]
                                         (let [old-page-node (nth pages old-index)
-                                              old-page-physics (node-to-physics old-page-node)
+                                              old-page-physics (-> old-page-node second :physics)
 
                                               new-page-node (nth pages new-index)
-                                              new-page-physics (node-to-physics new-page-node)
+                                              new-page-physics (-> new-page-node second :physics)
                                               get-dom-element (fn [node]
                                                                 (first (filter (fn [component]
                                                                                  (= "DOMElement" (.. component -constructor -name)))
@@ -220,7 +233,7 @@
                                               new-dot-dom  (get-dom-element new-dot-node)]
                                           (.. old-dot-dom (setProperty "backgroundColor" "transparent"))
                                           (.. new-dot-dom (setProperty "backgroundColor" "white"))
-                                          
+
                                           (if (< old-index new-index)
                                             (do
                                               (.. (:anchor old-page-physics) (set -1 0 0))
@@ -233,38 +246,16 @@
                                               (.. (:anchor new-page-physics) (set 0 0 0))
                                               (.. (:quaternion new-page-physics) (set 1 0 0 0))))))
                )
-
     (go
       (while true
         (let [[v channel] (alts! [back-clicks next-clicks])]
           (cond
             (= channel back-clicks) (do
-                                      (println "back" @current-index)
                                       (swap! current-index dec)
                                       )
             (= channel next-clicks) (do
-                                      (println "next" @current-index)
                                       (swap! current-index inc)
-                                      )))))
-    
-    
-    (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
-                                                          (.. simulation (update time))
-                                                          (doseq [page-node pages
-                                                                  :let [physics (node-to-physics page-node)
-                                                                        physics-transform (.. simulation (getTransform (:box physics)))
-                                                                        p (.. physics-transform -position)
-                                                                        r (.. physics-transform -rotation)]]
-                                                            (.. page-node
-                                                                (setPosition (* 0 1446) 0 0)
-                                                                (setRotation (nth r 0) (nth r 1) (nth r 2) (nth r 3))))
-
-                                                          (this-as this
-                                                                   (.. FamousEngine (requestUpdateOnNextTick this)))
-                                                          )})))
-    )
-
-  )
+                                      )))))))
 
 (Carousel)
 (.. FamousEngine init)
