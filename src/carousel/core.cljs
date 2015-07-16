@@ -239,13 +239,11 @@
 
         pager-node (get-node-by-id scene-graph "pager")
         pages (pager-node 2)
-
-        dot-container-node (-> (get-node-by-id scene-graph "dots") meta :famous-node)
-        dot-nodes (.. dot-container-node getChildren)
         current-index (atom 0)]
     (render-scene-graph scene-graph)
     (add-watch current-index :watcher (fn [key atom old-index new-index]
-                                        (let [old-page-node (nth pages old-index)
+                                        (let [dot-nodes (-> (get-node-by-id scene-graph "dots") vec)
+                                              old-page-node (nth pages old-index)
                                               old-page-physics (-> old-page-node second :physics)
 
                                               new-page-node (nth pages new-index)
@@ -255,13 +253,15 @@
                                                                                  (= "DOMElement" (.. component -constructor -name)))
                                                                                (.. node getComponents))))
 
-                                              old-dot-node (nth dot-nodes old-index)
-                                              old-dot-dom (get-dom-element old-dot-node)
-
-                                              new-dot-node (nth dot-nodes new-index)
-                                              new-dot-dom (get-dom-element new-dot-node)]
-                                          (.. old-dot-dom (setProperty "backgroundColor" "transparent"))
-                                          (.. new-dot-dom (setProperty "backgroundColor" "white"))
+                                              ;old-dot-node (nth dot-nodes old-index)
+                                              ;old-dot-dom (get-dom-element old-dot-node)
+                                              ;
+                                              ;new-dot-node (nth dot-nodes new-index)
+                                              ;new-dot-dom (get-dom-element new-dot-node)
+                                              ]
+                                          (println dot-nodes)
+                                          ;(.. old-dot-dom (setProperty "backgroundColor" "transparent"))
+                                          ;(.. new-dot-dom (setProperty "backgroundColor" "white"))
 
                                           (if (< old-index new-index)
                                             (do
