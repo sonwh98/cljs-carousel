@@ -242,24 +242,6 @@
 
         dot-container-node (-> (get-node-by-id scene-graph "dots") meta :famous-node)
         dot-nodes (.. dot-container-node getChildren)
-        resize (clj->js {:onSizeChange (fn [^Float32Array size]
-                                         "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
-                                         (let [size (IndexedSeq. size 0)
-                                               dotWidth 10
-                                               numPages 5
-                                               spacing 5
-                                               totalDotSize (+ (* numPages dotWidth)
-                                                               (* spacing (dec numPages)))
-                                               start-x (/ (- (nth size 0) totalDotSize)
-                                                          2)]
-                                           (doseq [n (range (count dot-nodes))
-                                                   :let [dot-node (nth dot-nodes n)]]
-                                             (.. dot-node (setPosition (+ start-x
-                                                                          (* n
-                                                                             (+ dotWidth spacing)))
-                                                                       0
-                                                                       0)))))})
-        ;_ (.. dot-container-node (addComponent resize))
         current-index (atom 0)]
     (render-scene-graph scene-graph)
     (add-watch current-index :watcher (fn [key atom old-index new-index]
