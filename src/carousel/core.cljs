@@ -172,8 +172,7 @@
         context (.. FamousEngine (createScene "body")) ]
     (.. context (addChild root-node))
 
-    (doseq [page physics-nodes
-            :let [physics (-> page second :physics)]]
+    (doseq [ [_ {physics :physics}] physics-nodes]
       (.. simulation (add (:box physics)  (:spring physics) (:rotational-spring physics))))
 
     (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
