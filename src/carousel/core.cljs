@@ -129,14 +129,15 @@
 
     (if-not (empty? components)
       (doseq [component components
-              :let [dom-element (DOMElement. famous-node)
+              :let [component-keyword (first component)
+                    a-component (make-component famous-node component-keyword )
                     properties (nth component 1)]]
         (doseq [p properties
                 :let [name (name (first p))
                       value (second p)]]
           (if (= name "content")
-            (.. dom-element (setContent value))
-            (.. dom-element (setProperty name value))))))
+            (.. a-component (setContent value))
+            (.. a-component (setProperty name value))))))
 
     (-> node-as-vec
         (update-in [2] (fn [children]
