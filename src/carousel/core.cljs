@@ -1,8 +1,8 @@
 (ns ^:figwheel-always carousel.core
-    (:require-macros [cljs.core.async.macros :refer [go]])
-    (:require [com.famous.Famous]
-              [carousel.util :refer [events->chan get-children]]
-              [cljs.core.async :refer [>! <! put! chan alts!]]))
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [com.famous.Famous]
+            [carousel.util :refer [events->chan get-children]]
+            [cljs.core.async :refer [>! <! put! chan alts!]]))
 
 (enable-console-print!)
 
@@ -25,10 +25,15 @@
 
 (defonce ABSOLUTE (.. Size -ABSOLUTE))
 
-(defn make-component [famous-node component-keyword]
-  (case component-keyword
-    :DOMElement (DOMElement. famous-node))
-  )
+(defn attach-component [component-descriptor famous-node]
+  (cond
+    (= (type component-descriptor) PersistentVector) (let [component-keyword (first component-descriptor)]
+                                                       (cond
+                                                         (= component-keyword :DOMElement) (DOMElement. famous-node)))
+
+    (= (type component-descriptor) PersistentArrayMap) (let [component (clj->js component-descriptor)]
+                                                         (.. famous-node (addComponent component))
+                                                         component)))
 
 (def image-names ["01_-_Autorretrato._Francisco_Goya_y_Lucientes2C_pintor_thumb.jpg"
                   "02_-_El_si_pronuncian_y_la_mano_alargan_al_primero_que_llega_thumb.jpg"
@@ -42,6 +47,8 @@
                   "11_-_Muchachos_al_avC3ADo_thumb.jpg"
                   "12_-_A_caza_de_dientes_thumb.jpg"
                   "13_-_Estan_calientes_thumb.jpg"])
+
+(declare get-node-by-id)
 
 (def scene-graph [:node {:id "root"}
                   [[:node {:id            "back"
@@ -71,44 +78,72 @@
                                                          :zIndex        "2"
                                                          :content       ">"}]]}]
 
-                   [:node {:id "pager"
-                           :align [0.5 0.5 0]
+                   [:node {:id          "pager"
+                           :align       [0.5 0.5 0]
                            :mount-point [0.5 0.5 0]}
                     (for [image-name image-names
-                               :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
-                                     image-url (str url-base image-name)
-                                     url (str "url('" image-url "')")
-                                     box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
-                                     anchor (Vec3. 1 0 0)
-                                     quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                           [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
-                                   :absolute-size [500 500 0]
-                                   :align         [0.5 0.5]
-                                   :mount-point   [0.5 0.5]
-                                   :origin        [0.5 0.5]
-                                   :components    [[:DOMElement {:backgroundImage   url
-                                                                 :background-repeat "no-repeat"
-                                                                 :background-size   "cover"}]]
-                                   :physics {:box box
-                                             :anchor anchor
-                                             :spring (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
-                                             :quaternion quaternion
-                                             :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}}])]
+                          :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
+                                image-url (str url-base image-name)
+                                url (str "url('" image-url "')")
+                                box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
+                                anchor (Vec3. 1 0 0)
+                                quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
+                      [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                              :absolute-size [500 500 0]
+                              :align         [0.5 0.5]
+                              :mount-point   [0.5 0.5]
+                              :origin        [0.5 0.5]
+                              :components    [[:DOMElement {:backgroundImage   url
+                                                            :background-repeat "no-repeat"
+                                                            :background-size   "cover"}]]
+                              :physics       {:box               box
+                                              :anchor            anchor
+                                              :spring            (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
+                                              :quaternion        quaternion
+                                              :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}}])]
                    [:node {:id            "dots"
                            :size-mode     [ABSOLUTE ABSOLUTE]
                            :absolute-size [20 20]
                            :position      [0 -50 0]
                            :align         [0.5 1 0]
-                           :mount-point   [0.5 1 0]}
+                           :mount-point   [0.5 1 0]
+                           ;:components    [{:onSizeChange (fn [^Float32Array size]
+                           ;                                 "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
+                           ;                                 (let [dots (-> (get-node-by-id  scene-graph "dots") meta :famous-node)
+                           ;                                       dot-nodes (.. dots getChildren)
+                           ;                                       size (IndexedSeq. size 0)
+                           ;                                       dotWidth 10
+                           ;                                       numPages 5
+                           ;                                       spacing 5
+                           ;                                       totalDotSize (+ (* numPages dotWidth)
+                           ;                                                       (* spacing (dec numPages)))
+                           ;                                       start-x (/ (- (nth size 0) totalDotSize)
+                           ;                                                  2)]
+                           ;                                   (doseq [n (-> image-names count range)
+                           ;                                           :let [dot-node (nth dot-nodes n)]]
+                           ;                                     (.. dot-node (setPosition (+ start-x
+                           ;                                                                  (* n
+                           ;                                                                     (+ dotWidth spacing)))
+                           ;                                                               0
+                           ;                                                               0)))))}]
+                           }
                     (for [i (-> image-names count range)]
                       [:node {:size-mode     [ABSOLUTE ABSOLUTE]
                               :absolute-size [10 10]
-                              :components    [[:DOMElement {:borderRadius "15px"
-                                                            :border       "2px solid white"
+                              :components    [[:DOMElement {:borderRadius    "15px"
+                                                            :border          "2px solid white"
                                                             :backgroundColor (if (= i 0)
                                                                                "white"
                                                                                "transparent")
-                                                            :boxSizing    "border-box"}]]}])]]])
+                                                            :boxSizing       "border-box"}]]}])]]])
+
+(defn- get-node-by-id [node id]
+  (if (= (-> (get-in node [1]) :id) id)
+    node
+    (first (filter #(not (nil? %))
+                   (for [child (get-in node [2])]
+                     (get-node-by-id child id))))))
+
 
 (defn attach-famous-node-to-scene-graph [node-as-vec]
   (let [attributes (nth node-as-vec 1)
@@ -127,17 +162,15 @@
     (.apply (.-setMountPoint famous-node) famous-node mount-point)
     (.apply (.-setOrigin famous-node) famous-node origin)
 
-    (if-not (empty? components)
-      (doseq [component components
-              :let [component-keyword (first component)
-                    a-component (make-component famous-node component-keyword )
-                    properties (nth component 1)]]
-        (doseq [p properties
-                :let [name (name (first p))
-                      value (second p)]]
-          (if (= name "content")
-            (.. a-component (setContent value))
-            (.. a-component (setProperty name value))))))
+    (doseq [component-descriptor components
+            :let [a-component (attach-component component-descriptor famous-node)
+                  properties (nth component-descriptor 1)]]
+      (doseq [p properties
+              :let [name (name (first p))
+                    value (second p)]]
+        (if (= name "content")
+          (.. a-component (setContent value))
+          (.. a-component (setProperty name value)))))
 
     (-> node-as-vec
         (update-in [2] (fn [children]
@@ -149,12 +182,8 @@
                                   child-node)))))
         (with-meta {:famous-node famous-node}))))
 
-(defn get-node-by-id [node id]
-  (if (= (-> (get-in node [1]) :id) id )
-    node
-    (first (filter #(not (nil? %))
-                   (for [child (get-in node [2])]
-                     (get-node-by-id child id))))))
+
+
 (defn- find-physics-helper [node]
   (let [attribute (get-in node [1])
         children (get-in node [2])]
@@ -175,11 +204,11 @@
   (let [simulation (PhysicsEngine.)
         root-node (-> scene-graph meta :famous-node)
         physics-nodes (find-nodes-with-physics scene-graph)
-        context (.. FamousEngine (createScene "body")) ]
+        context (.. FamousEngine (createScene "body"))]
     (.. context (addChild root-node))
 
-    (doseq [ [_ {physics :physics}] physics-nodes]
-      (.. simulation (add (:box physics)  (:spring physics) (:rotational-spring physics))))
+    (doseq [[_ {physics :physics}] physics-nodes]
+      (.. simulation (add (:box physics) (:spring physics) (:rotational-spring physics))))
 
     (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
                                                           (.. simulation (update time))
@@ -194,7 +223,7 @@
                                                                 (setRotation (nth r 0) (nth r 1) (nth r 2) (nth r 3))))
 
                                                           (this-as this
-                                                                   (.. FamousEngine (requestUpdateOnNextTick this)))
+                                                            (.. FamousEngine (requestUpdateOnNextTick this)))
                                                           )})))
 
     ))
@@ -230,7 +259,7 @@
                                                                              (+ dotWidth spacing)))
                                                                        0
                                                                        0)))))})
-        _ (.. dot-container-node (addComponent resize))
+        ;_ (.. dot-container-node (addComponent resize))
         current-index (atom 0)]
     (render-scene-graph scene-graph)
     (add-watch current-index :watcher (fn [key atom old-index new-index]
@@ -245,10 +274,10 @@
                                                                                (.. node getComponents))))
 
                                               old-dot-node (nth dot-nodes old-index)
-                                              old-dot-dom  (get-dom-element old-dot-node)
+                                              old-dot-dom (get-dom-element old-dot-node)
 
                                               new-dot-node (nth dot-nodes new-index)
-                                              new-dot-dom  (get-dom-element new-dot-node)]
+                                              new-dot-dom (get-dom-element new-dot-node)]
                                           (.. old-dot-dom (setProperty "backgroundColor" "transparent"))
                                           (.. new-dot-dom (setProperty "backgroundColor" "white"))
 
