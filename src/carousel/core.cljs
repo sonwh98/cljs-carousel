@@ -149,23 +149,36 @@
     (first (filter #(not (nil? %))
                    (for [child (get-in node [2])]
                      (get-node-by-id child id))))))
+(defn helper [node]
+  (let [attribute (get-in node [1])
+        children (get-in node [2])]
+    (if (contains? attribute :physics)
+      (if (empty? children)
+        [node]
+        (concat node (->> children (map helper) (filter #(not (empty? %))))))
+      (if-not (empty? children)
+        (->> children (map helper) (filter #(not (empty? %)))))))
+  )
+
+(defn find-nodes-with-physics [node]
+  (let [nodes (helper node)]
+    (vec (for [o (first nodes)]
+           (first o)))))
 
 (defn render-scene-graph [scene-graph]
   (let [simulation (PhysicsEngine.)
         root-node (-> scene-graph meta :node)
-        pager-node (get-node-by-id scene-graph "pager")
-        pages (pager-node 2)
-        
+        physics-nodes (find-nodes-with-physics scene-graph)
         context (.. FamousEngine (createScene "body")) ]
     (.. context (addChild root-node))
 
-    (doseq [page pages
+    (doseq [page physics-nodes
             :let [physics (-> page second :physics)]]
       (.. simulation (add (:box physics)  (:spring physics) (:rotational-spring physics))))
-    
+
     (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
                                                           (.. simulation (update time))
-                                                          (doseq [page pages
+                                                          (doseq [page physics-nodes
                                                                   :let [page-node (-> page meta :node)
                                                                         physics (-> page second :physics)
                                                                         physics-transform (.. simulation (getTransform (:box physics)))
@@ -184,7 +197,7 @@
 (defn Carousel []
   (let [scene-graph (attach-famous-node-to-scene-graph scene-graph)
 
-        back-node (get-node-by-id scene-graph "back") 
+        back-node (get-node-by-id scene-graph "back")
         back-clicks (events->chan back-node "tap")
 
         next-node (get-node-by-id scene-graph "next")
@@ -225,10 +238,10 @@
                                                                 (first (filter (fn [component]
                                                                                  (= "DOMElement" (.. component -constructor -name)))
                                                                                (.. node getComponents))))
-                                              
+
                                               old-dot-node (nth dot-nodes old-index)
                                               old-dot-dom  (get-dom-element old-dot-node)
-                                              
+
                                               new-dot-node (nth dot-nodes new-index)
                                               new-dot-dom  (get-dom-element new-dot-node)]
                                           (.. old-dot-dom (setProperty "backgroundColor" "transparent"))
