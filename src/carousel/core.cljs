@@ -25,6 +25,11 @@
 
 (defonce ABSOLUTE (.. Size -ABSOLUTE))
 
+(defn make-component [famous-node component-keyword]
+  (case component-keyword
+    :DOMElement (DOMElement. famous-node))
+  )
+
 (def image-names ["01_-_Autorretrato._Francisco_Goya_y_Lucientes2C_pintor_thumb.jpg"
                   "02_-_El_si_pronuncian_y_la_mano_alargan_al_primero_que_llega_thumb.jpg"
                   "03_-_Que_viene_el_Coco_thumb.jpg"
@@ -88,7 +93,7 @@
                                              :anchor anchor
                                              :spring (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
                                              :quaternion quaternion
-                                        :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}}])]
+                                             :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}}])]
                    [:node {:id            "dots"
                            :size-mode     [ABSOLUTE ABSOLUTE]
                            :absolute-size [20 20]
@@ -107,7 +112,7 @@
 
 (defn attach-famous-node-to-scene-graph [node-as-vec]
   (let [attributes (nth node-as-vec 1)
-        node (Node.)
+        famous-node (Node.)
         size-mode (clj->js (:size-mode attributes))
         absolute-size (clj->js (:absolute-size attributes))
         align (clj->js (:align attributes))
@@ -115,16 +120,16 @@
         components (:components attributes)
         mount-point (clj->js (:mount-point attributes))
         origin (clj->js (:origin attributes))]
-    (.apply (.-setSizeMode node) node size-mode)
-    (.apply (.-setAbsoluteSize node) node absolute-size)
-    (.apply (.-setAlign node) node align)
-    (.apply (.-setPosition node) node position)
-    (.apply (.-setMountPoint node) node mount-point)
-    (.apply (.-setOrigin node) node origin)
+    (.apply (.-setSizeMode famous-node) famous-node size-mode)
+    (.apply (.-setAbsoluteSize famous-node) famous-node absolute-size)
+    (.apply (.-setAlign famous-node) famous-node align)
+    (.apply (.-setPosition famous-node) famous-node position)
+    (.apply (.-setMountPoint famous-node) famous-node mount-point)
+    (.apply (.-setOrigin famous-node) famous-node origin)
 
     (if-not (empty? components)
       (doseq [component components
-              :let [dom-element (DOMElement. node)
+              :let [dom-element (DOMElement. famous-node)
                     properties (nth component 1)]]
         (doseq [p properties
                 :let [name (name (first p))
@@ -139,9 +144,9 @@
                                     :let [child-node (attach-famous-node-to-scene-graph c)
                                           a-child-node (-> child-node meta :famous-node)]]
                                 (do
-                                  (.. node (addChild a-child-node))
+                                  (.. famous-node (addChild a-child-node))
                                   child-node)))))
-        (with-meta {:famous-node node}))))
+        (with-meta {:famous-node famous-node}))))
 
 (defn get-node-by-id [node id]
   (if (= (-> (get-in node [1]) :id) id )
@@ -149,19 +154,19 @@
     (first (filter #(not (nil? %))
                    (for [child (get-in node [2])]
                      (get-node-by-id child id))))))
-(defn helper [node]
+(defn- find-physics-helper [node]
   (let [attribute (get-in node [1])
         children (get-in node [2])]
     (if (contains? attribute :physics)
       (if (empty? children)
         [node]
-        (concat node (->> children (map helper) (filter #(not (empty? %))))))
+        (concat node (->> children (map find-physics-helper) (filter #(not (empty? %))))))
       (if-not (empty? children)
-        (->> children (map helper) (filter #(not (empty? %)))))))
+        (->> children (map find-physics-helper) (filter #(not (empty? %)))))))
   )
 
 (defn find-nodes-with-physics [node]
-  (let [nodes (helper node)]
+  (let [nodes (find-physics-helper node)]
     (vec (for [o (first nodes)]
            (first o)))))
 
@@ -205,7 +210,7 @@
         pager-node (get-node-by-id scene-graph "pager")
         pages (pager-node 2)
 
-        dot-container-node (-> scene-graph (get-in [2 3]) meta :famous-node )
+        dot-container-node (-> (get-node-by-id scene-graph "dots") meta :famous-node)
         dot-nodes (.. dot-container-node getChildren)
         resize (clj->js {:onSizeChange (fn [^Float32Array size]
                                          "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
