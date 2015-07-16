@@ -12,7 +12,7 @@
   ([node event] (events->chan node event (chan)))
   ([node event c]
    (let [node (if (= (type node) PersistentVector)
-                (-> node meta :node)
+                (-> node meta :famous-node)
                 node)]
     (.. (GestureHandler. node) (on event (fn []
                                            (put! c event)))))

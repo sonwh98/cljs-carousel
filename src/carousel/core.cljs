@@ -137,11 +137,11 @@
         (update-in [2] (fn [children]
                          (vec (for [c children
                                     :let [child-node (attach-famous-node-to-scene-graph c)
-                                          a-child-node (-> child-node meta :node)]]
+                                          a-child-node (-> child-node meta :famous-node)]]
                                 (do
                                   (.. node (addChild a-child-node))
                                   child-node)))))
-        (with-meta {:node node}))))
+        (with-meta {:famous-node node}))))
 
 (defn get-node-by-id [node id]
   (if (= (-> (get-in node [1]) :id) id )
@@ -167,7 +167,7 @@
 
 (defn render-scene-graph [scene-graph]
   (let [simulation (PhysicsEngine.)
-        root-node (-> scene-graph meta :node)
+        root-node (-> scene-graph meta :famous-node)
         physics-nodes (find-nodes-with-physics scene-graph)
         context (.. FamousEngine (createScene "body")) ]
     (.. context (addChild root-node))
@@ -177,9 +177,9 @@
 
     (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
                                                           (.. simulation (update time))
-                                                          (doseq [page physics-nodes
-                                                                  :let [page-node (-> page meta :node)
-                                                                        physics (-> page second :physics)
+                                                          (doseq [pn physics-nodes
+                                                                  :let [page-node (-> pn meta :famous-node)
+                                                                        physics (-> pn second :physics)
                                                                         physics-transform (.. simulation (getTransform (:box physics)))
                                                                         p (.. physics-transform -position)
                                                                         r (.. physics-transform -rotation)]]
@@ -205,7 +205,7 @@
         pager-node (get-node-by-id scene-graph "pager")
         pages (pager-node 2)
 
-        dot-container-node (-> scene-graph (get-in [2 3]) meta :node )
+        dot-container-node (-> scene-graph (get-in [2 3]) meta :famous-node )
         dot-nodes (.. dot-container-node getChildren)
         resize (clj->js {:onSizeChange (fn [^Float32Array size]
                                          "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
