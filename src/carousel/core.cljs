@@ -200,16 +200,31 @@
     (vec (for [o (first nodes)]
            (first o)))))
 
+
+(defn flatten-one-level [coll]
+  (mapcat  #(if (sequential? %) % [%]) coll))
+
+(defn- helper [node]
+  (let [attribute (get-in node [1])
+        children (get-in node [2])]
+    (if (contains? attribute :components)
+      (concat node (map #(-> % helper  vec) children ))
+      (map #(-> %  helper vec) children))))
+
 (defn render-scene-graph [scene-graph]
   (let [simulation (PhysicsEngine.)
         root-node (-> scene-graph meta :famous-node)
         physics-nodes (find-nodes-with-physics scene-graph)
+        ;nodes-with-components (find-nodes-with-components scene-graph)
         context (.. FamousEngine (createScene "body"))]
     (.. context (addChild root-node))
 
     (doseq [[_ {physics :physics}] physics-nodes]
       (.. simulation (add (:box physics) (:spring physics) (:rotational-spring physics))))
 
+    ;; (doseq [{components :components} nodes-with-components]
+    ;;   (println "components" components)
+    ;;   )
     (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
                                                           (.. simulation (update time))
                                                           (doseq [pn physics-nodes
