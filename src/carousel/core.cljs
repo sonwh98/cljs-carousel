@@ -1,7 +1,7 @@
 (ns ^:figwheel-always carousel.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [com.famous.Famous]
-            [carousel.util :refer [events->chan get-children]]
+            [carousel.util :refer [events->chan attach-famous-node-to-scene-graph get-node-by-id render-scene-graph]]
             [cljs.core.async :refer [>! <! put! chan alts!]]))
 
 (enable-console-print!)
@@ -25,16 +25,6 @@
 
 (defonce ABSOLUTE (.. Size -ABSOLUTE))
 
-(defn attach-component [component-descriptor famous-node]
-  (cond
-    (= (type component-descriptor) PersistentVector) (let [component-keyword (first component-descriptor)]
-                                                       (cond
-                                                         (= component-keyword :DOMElement) (DOMElement. famous-node)))
-
-    (= (type component-descriptor) PersistentArrayMap) (let [component (clj->js component-descriptor)]
-                                                         (.. famous-node (addComponent component))
-                                                         component)))
-
 (def image-names ["01_-_Autorretrato._Francisco_Goya_y_Lucientes2C_pintor_thumb.jpg"
                   "02_-_El_si_pronuncian_y_la_mano_alargan_al_primero_que_llega_thumb.jpg"
                   "03_-_Que_viene_el_Coco_thumb.jpg"
@@ -47,8 +37,6 @@
                   "11_-_Muchachos_al_avC3ADo_thumb.jpg"
                   "12_-_A_caza_de_dientes_thumb.jpg"
                   "13_-_Estan_calientes_thumb.jpg"])
-
-(declare get-node-by-id)
 
 (def scene-graph [:node {:id "root"}
                   [[:node {:id            "back"
@@ -88,7 +76,7 @@
                                 box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
                                 anchor (Vec3. 1 0 0)
                                 quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                      [:node {:id "page"
+                      [:node {:id            "page"
                               :size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
                               :absolute-size [500 500 0]
                               :align         [0.5 0.5]
@@ -129,7 +117,7 @@
                            ;                                                               0)))))}]
                            }
                     (for [i (-> image-names count range)]
-                      [:node {:id "dot"
+                      [:node {:id            "dot"
                               :size-mode     [ABSOLUTE ABSOLUTE]
                               :absolute-size [10 10]
                               :components    [[:DOMElement {:borderRadius    "15px"
@@ -139,118 +127,7 @@
                                                                                "transparent")
                                                             :boxSizing       "border-box"}]]}])]]])
 
-(defn- get-node-by-id [node id]
-  (if (= (-> (get-in node [1]) :id) id)
-    node
-    (first (filter #(not (nil? %))
-                   (for [child (get-in node [2])]
-                     (get-node-by-id child id))))))
 
-
-(defn attach-famous-node-to-scene-graph [node-as-vec]
-  (let [attributes (nth node-as-vec 1)
-        famous-node (Node.)
-        size-mode (clj->js (:size-mode attributes))
-        absolute-size (clj->js (:absolute-size attributes))
-        align (clj->js (:align attributes))
-        position (clj->js (:position attributes))
-        components (:components attributes)
-        mount-point (clj->js (:mount-point attributes))
-        origin (clj->js (:origin attributes))]
-    (.apply (.-setSizeMode famous-node) famous-node size-mode)
-    (.apply (.-setAbsoluteSize famous-node) famous-node absolute-size)
-    (.apply (.-setAlign famous-node) famous-node align)
-    (.apply (.-setPosition famous-node) famous-node position)
-    (.apply (.-setMountPoint famous-node) famous-node mount-point)
-    (.apply (.-setOrigin famous-node) famous-node origin)
-
-    (doseq [component-descriptor components
-            :let [a-component (attach-component component-descriptor famous-node)
-                  properties (nth component-descriptor 1)]]
-      (doseq [p properties
-              :let [name (name (first p))
-                    value (second p)]]
-        (if (= name "content")
-          (.. a-component (setContent value))
-          (.. a-component (setProperty name value)))))
-
-    (-> node-as-vec
-        (update-in [2] (fn [children]
-                         (vec (for [c children
-                                    :let [child-node (attach-famous-node-to-scene-graph c)
-                                          a-child-node (-> child-node meta :famous-node)]]
-                                (do
-                                  (.. famous-node (addChild a-child-node))
-                                  child-node)))))
-        (with-meta {:famous-node famous-node}))))
-
-
-
-(defn- find-physics-helper [node]
-  (let [attribute (get-in node [1])
-        children (get-in node [2])]
-    (if (contains? attribute :physics)
-      (if (empty? children)
-        [node]
-        (concat node (->> children (map find-physics-helper) (filter #(not (empty? %))))))
-      (if-not (empty? children)
-        (->> children (map find-physics-helper) (filter #(not (empty? %)))))))
-  )
-
-(defn find-nodes-with-physics [node]
-  (let [nodes (find-physics-helper node)]
-    (vec (for [o (first nodes)]
-           (first o)))))
-
-
-(defn flatten-one-level [coll]
-  (mapcat  #(if (sequential? %) % [%]) coll))
-
-(defn- helper [node ]
-  (let [attribute (get-in node [1])
-        children (get-in node [2])]
-    (if (contains? attribute :components)
-      (concat node (map #(-> % helper  vec) children ))
-      (map #(-> %  helper vec) children))))
-
-(defn f []
-  (let [r (helper scene-graph)]
-    (loop [node (first r)]
-      (println "node=" node " rest=" (rest r))
-      (if-not (empty? (rest r))
-        (recur (rest r))))))
-
-(defn render-scene-graph [scene-graph]
-  (let [simulation (PhysicsEngine.)
-        root-node (-> scene-graph meta :famous-node)
-        physics-nodes (find-nodes-with-physics scene-graph)
-        ;nodes-with-components (find-nodes-with-components scene-graph)
-        context (.. FamousEngine (createScene "body"))]
-    (.. context (addChild root-node))
-
-    (doseq [[_ {physics :physics}] physics-nodes]
-      (.. simulation (add (:box physics) (:spring physics) (:rotational-spring physics))))
-
-    ;; (doseq [{components :components} nodes-with-components]
-    ;;   (println "components" components)
-    ;;   )
-    (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
-                                                          (.. simulation (update time))
-                                                          (doseq [pn physics-nodes
-                                                                  :let [page-node (-> pn meta :famous-node)
-                                                                        physics (-> pn second :physics)
-                                                                        physics-transform (.. simulation (getTransform (:box physics)))
-                                                                        p (.. physics-transform -position)
-                                                                        r (.. physics-transform -rotation)]]
-                                                            (.. page-node
-                                                                (setPosition (* 0 1446) 0 0)
-                                                                (setRotation (nth r 0) (nth r 1) (nth r 2) (nth r 3))))
-
-                                                          (this-as this
-                                                            (.. FamousEngine (requestUpdateOnNextTick this)))
-                                                          )})))
-
-    ))
 
 (defn Carousel []
   (let [scene-graph (attach-famous-node-to-scene-graph scene-graph)
@@ -283,7 +160,7 @@
                                               ;new-dot-node (nth dot-nodes new-index)
                                               ;new-dot-dom (get-dom-element new-dot-node)
                                               ]
-                                          (println dot-nodes)
+                                          ;(println dot-nodes)
                                           ;(.. old-dot-dom (setProperty "backgroundColor" "transparent"))
                                           ;(.. new-dot-dom (setProperty "backgroundColor" "white"))
 
@@ -312,49 +189,3 @@
 
 (Carousel)
 (.. FamousEngine init)
-
-
-(defn t [node]
-  (let [attribute (get-in node [1])
-        children (get-in node [2])]
-    (if (contains? attribute :components)
-      (first (conj (for [c children]
-               (t c)) node))
-      (for [c children]
-        (t c)))))
-
-
-(defn c [nodes result]
-  (if (empty? nodes)
-    result
-    (let [element (first nodes)
-          the-rest (rest nodes)]
-      (if (= (first element) :node)
-        (do
-          ;; (println "element1=" element)
-          ;; (println "the-rest1=" the-rest)
-          ;; (println "result1=" result)
-          (c the-rest (conj result element)))
-        (do
-          ;; (println "element2=" element)
-          ;; (println "the-res2=" the-rest)
-          ;; (println "result2=" result)
-          (c (first the-rest ) (c element result)))
-        ))
-    )
-  )
-
-
-;; (defn c [nodes result]
-;;   (if (empty? nodes)
-;;     result
-;;     (let [element (first nodes)]
-;;       (if (= (first element) :node)
-;;         (c (rest nodes) (conj result element))
-;;         (do
-;;           (concat (c (rest (first nodes)) result)
-;;                   (c (rest (rest nodes)) result)))))))
-
-(def pages (get-in scene-graph [2 2 2]))
-
-(def foo (conj pages [:node {:id "foo"}]   )  )
