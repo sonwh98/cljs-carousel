@@ -172,12 +172,8 @@
       (while true
         (let [[v channel] (alts! [back-clicks next-clicks])]
           (cond
-            (= channel back-clicks) (do
-                                      (swap! current-index dec)
-                                      )
-            (= channel next-clicks) (do
-                                      (swap! current-index inc)
-                                      )))))))
+            (= channel back-clicks) (swap! current-index dec)
+            (= channel next-clicks) (swap! current-index inc)))))))
 
 (start)
 
