@@ -152,4 +152,4 @@
                                                             (.. FamousEngine (requestUpdateOnNextTick this)))
                                                           )})))
 
-    ))
+    (.. FamousEngine init)))

@@ -7,7 +7,6 @@
 (enable-console-print!)
 
 (defonce famous js/famous)
-(defonce FamousEngine (.. famous -core -FamousEngine))
 (defonce Size (.. famous -components -Size))
 (defonce physics (.. famous -physics))
 (defonce math (.. famous -math))
@@ -122,9 +121,7 @@
                                                                                "transparent")
                                                             :boxSizing       "border-box"}]]}])]]])
 
-
-
-(defn Carousel []
+(defn start []
   (let [scene-graph (attach-famous-node-to-scene-graph scene-graph)
 
         back-node (get-node-by-id scene-graph "back")
@@ -182,5 +179,5 @@
                                       (swap! current-index inc)
                                       )))))))
 
-(Carousel)
-(.. FamousEngine init)
+(start)
+
