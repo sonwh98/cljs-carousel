@@ -1,8 +1,8 @@
 (ns ^:figwheel-always carousel.core
-    (:require-macros [cljs.core.async.macros :refer [go]])
-    (:require [com.famous.Famous]
-              [carousel.util :as util :refer [events->chan attach-famous-node-to-scene-graph get-node-by-id render-scene-graph]]
-              [cljs.core.async :refer [>! <! put! chan alts!]]))
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [com.famous.Famous]
+            [carousel.util :as util :refer [events->chan attach-famous-node-to-scene-graph get-node-by-id render-scene-graph]]
+            [cljs.core.async :refer [>! <! put! chan alts!]]))
 
 (enable-console-print!)
 
@@ -88,28 +88,7 @@
                            :absolute-size [20 20]
                            :position      [0 -50 0]
                            :align         [0.5 1 0]
-                           :mount-point   [0.5 1 0]
-                           ;; :components    [{:onSizeChange (fn [^Float32Array size]
-                           ;;                                  "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
-                           ;;                                  (let [dots (-> (get-node-by-id  scene-graph "dots") meta :famous-node)
-                           ;;                                        _ (println "dots " dots)
-                           ;;                                        dot-nodes (.. dots getChildren)
-                           ;;                                        size (IndexedSeq. size 0)
-                           ;;                                        dotWidth 10
-                           ;;                                        numPages 5
-                           ;;                                        spacing 5
-                           ;;                                        totalDotSize (+ (* numPages dotWidth)
-                           ;;                                                        (* spacing (dec numPages)))
-                           ;;                                        start-x (/ (- (nth size 0) totalDotSize)
-                           ;;                                                   2)]
-                           ;;                                    (doseq [n (-> image-names count range)
-                           ;;                                            :let [dot-node (nth dot-nodes n)]]
-                           ;;                                      (.. dot-node (setPosition (+ start-x
-                           ;;                                                                   (* n
-                           ;;                                                                      (+ dotWidth spacing)))
-                           ;;                                                                0
-                           ;;                                                                0)))))}]
-                           }
+                           :mount-point   [0.5 1 0]}
                     (for [i (-> image-names count range)]
                       [:node {:id            "dot"
                               :size-mode     [ABSOLUTE ABSOLUTE]
@@ -132,7 +111,28 @@
 
         pager-node (get-node-by-id scene-graph "pager")
         pages (pager-node 2)
+        dots (get-node-by-id scene-graph "dots")
         current-index (atom 0)]
+
+    (.. (-> dots meta :famous-node) (addComponent (clj->js {:onSizeChange (fn [^Float32Array size]
+                                                                            "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
+                                                                            (let [dot-nodes (->> (get-in dots [2]) (map #(-> % meta :famous-node)))
+                                                                                  size (IndexedSeq. size 0)
+                                                                                  dotWidth 10
+                                                                                  numPages 5
+                                                                                  spacing 5
+                                                                                  totalDotSize (+ (* numPages dotWidth)
+                                                                                                  (* spacing (dec numPages)))
+                                                                                  start-x (/ (- (nth size 0) totalDotSize)
+                                                                                             2)]
+                                                                              (doseq [n (-> image-names count range)
+                                                                                      :let [dot-node (nth dot-nodes n)]]
+                                                                                (println "dot-node=" dot-node)
+                                                                                (.. dot-node (setPosition (+ start-x
+                                                                                                             (* n
+                                                                                                                (+ dotWidth spacing)))
+                                                                                                          0
+                                                                                                          0)))))})))
     (render-scene-graph scene-graph)
     (add-watch current-index :watcher (fn [key atom old-index new-index]
                                         (let [dot-nodes (-> (get-node-by-id scene-graph "dots") vec)
@@ -146,15 +146,15 @@
                                                                                  (= "DOMElement" (.. component -constructor -name)))
                                                                                (.. node getComponents))))
 
-                                        ;old-dot-node (nth dot-nodes old-index)
-                                        ;old-dot-dom (get-dom-element old-dot-node)
-                                        ;
-                                        ;new-dot-node (nth dot-nodes new-index)
-                                        ;new-dot-dom (get-dom-element new-dot-node)
+                                              ;old-dot-node (nth dot-nodes old-index)
+                                              ;old-dot-dom (get-dom-element old-dot-node)
+                                              ;
+                                              ;new-dot-node (nth dot-nodes new-index)
+                                              ;new-dot-dom (get-dom-element new-dot-node)
                                               ]
-                                        ;(println dot-nodes)
-                                        ;(.. old-dot-dom (setProperty "backgroundColor" "transparent"))
-                                        ;(.. new-dot-dom (setProperty "backgroundColor" "white"))
+                                          ;(println dot-nodes)
+                                          ;(.. old-dot-dom (setProperty "backgroundColor" "transparent"))
+                                          ;(.. new-dot-dom (setProperty "backgroundColor" "white"))
 
                                           (if (< old-index new-index)
                                             (do
