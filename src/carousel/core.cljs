@@ -88,7 +88,8 @@
                                 box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
                                 anchor (Vec3. 1 0 0)
                                 quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                      [:node {:size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                      [:node {:id "page"
+                              :size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
                               :absolute-size [500 500 0]
                               :align         [0.5 0.5]
                               :mount-point   [0.5 0.5]
@@ -128,7 +129,8 @@
                            ;                                                               0)))))}]
                            }
                     (for [i (-> image-names count range)]
-                      [:node {:size-mode     [ABSOLUTE ABSOLUTE]
+                      [:node {:id "dot"
+                              :size-mode     [ABSOLUTE ABSOLUTE]
                               :absolute-size [10 10]
                               :components    [[:DOMElement {:borderRadius    "15px"
                                                             :border          "2px solid white"
@@ -204,12 +206,19 @@
 (defn flatten-one-level [coll]
   (mapcat  #(if (sequential? %) % [%]) coll))
 
-(defn- helper [node]
+(defn- helper [node ]
   (let [attribute (get-in node [1])
         children (get-in node [2])]
     (if (contains? attribute :components)
       (concat node (map #(-> % helper  vec) children ))
       (map #(-> %  helper vec) children))))
+
+(defn f []
+  (let [r (helper scene-graph)]
+    (loop [node (first r)]
+      (println "node=" node " rest=" (rest r))
+      (if-not (empty? (rest r))
+        (recur (rest r))))))
 
 (defn render-scene-graph [scene-graph]
   (let [simulation (PhysicsEngine.)
@@ -303,3 +312,49 @@
 
 (Carousel)
 (.. FamousEngine init)
+
+
+(defn t [node]
+  (let [attribute (get-in node [1])
+        children (get-in node [2])]
+    (if (contains? attribute :components)
+      (first (conj (for [c children]
+               (t c)) node))
+      (for [c children]
+        (t c)))))
+
+
+(defn c [nodes result]
+  (if (empty? nodes)
+    result
+    (let [element (first nodes)
+          the-rest (rest nodes)]
+      (if (= (first element) :node)
+        (do
+          ;; (println "element1=" element)
+          ;; (println "the-rest1=" the-rest)
+          ;; (println "result1=" result)
+          (c the-rest (conj result element)))
+        (do
+          ;; (println "element2=" element)
+          ;; (println "the-res2=" the-rest)
+          ;; (println "result2=" result)
+          (c (first the-rest ) (c element result)))
+        ))
+    )
+  )
+
+
+;; (defn c [nodes result]
+;;   (if (empty? nodes)
+;;     result
+;;     (let [element (first nodes)]
+;;       (if (= (first element) :node)
+;;         (c (rest nodes) (conj result element))
+;;         (do
+;;           (concat (c (rest (first nodes)) result)
+;;                   (c (rest (rest nodes)) result)))))))
+
+(def pages (get-in scene-graph [2 2 2]))
+
+(def foo (conj pages [:node {:id "foo"}]   )  )
