@@ -22,19 +22,6 @@
                                            (put! c event)))))
    c))
 
-(defmulti get-children
-  (fn [v]
-    (if (and (= (type v) PersistentVector)
-             (> (count v) 2))
-      (type v))))
-
-(defmethod get-children PersistentVector [params]
-  (nth params 2)
-  )
-
-(defmethod get-children :default [_]
-  [])
-
 (defn attach-component [component-descriptor famous-node]
   (cond
     (= (type component-descriptor) PersistentVector) (let [component-keyword (first component-descriptor)]
@@ -60,7 +47,6 @@
         absolute-size (clj->js (:absolute-size attributes))
         align (clj->js (:align attributes))
         position (clj->js (:position attributes))
-        components (:components attributes)
         mount-point (clj->js (:mount-point attributes))
         origin (clj->js (:origin attributes))]
     (.apply (.-setSizeMode famous-node) famous-node size-mode)
@@ -69,16 +55,6 @@
     (.apply (.-setPosition famous-node) famous-node position)
     (.apply (.-setMountPoint famous-node) famous-node mount-point)
     (.apply (.-setOrigin famous-node) famous-node origin)
-
-    (doseq [component-descriptor components
-            :let [a-component (attach-component component-descriptor famous-node)
-                  properties (nth component-descriptor 1)]]
-      (doseq [p properties
-              :let [name (name (first p))
-                    value (second p)]]
-        (if (= name "content")
-          (.. a-component (setContent value))
-          (.. a-component (setProperty name value)))))
 
     (-> node-as-vec
         (update-in [2] (fn [children]
@@ -143,7 +119,22 @@
 
     (doseq [ [_ {components :components} _ :as node] nodes-with-components
              :let [famous-node (-> node meta :famous-node)]]
-      (attach-component components famous-node))
+
+      (doseq [component-descriptor components
+              :let [a-component (attach-component component-descriptor famous-node)
+                    properties (nth component-descriptor 1)]]
+        (doseq [p properties
+                :let [name (name (first p))
+                      value (second p)]]
+          (if (= name "content")
+            (.. a-component (setContent value))
+            (.. a-component (setProperty name value)))))
+      
+      
+      ;(attach-component components famous-node)
+      )
+
+
     
     (.. FamousEngine (requestUpdate (clj->js {:onUpdate (fn [time]
                                                           (.. simulation (update time))
