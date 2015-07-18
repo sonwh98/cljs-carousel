@@ -7,19 +7,7 @@
 (defonce FamousEngine (.. famous -core -FamousEngine))
 (defonce Node (.. famous -core -Node))
 (defonce GestureHandler (.. famous -components -GestureHandler))
-(defonce Size (.. famous -components -Size))
-
 (defonce PhysicsEngine (.. famous -physics -PhysicsEngine))
-(defonce physics (.. famous -physics))
-(defonce math (.. famous -math))
-(defonce FamousBox (.. physics -Box))
-(defonce Spring (.. physics -Spring))
-(defonce RotationalSpring (.. physics -RotationalSpring))
-(defonce RotationalDrag (.. physics -RotationalDrag))
-(defonce Quaternion (.. math -Quaternion))
-(defonce Vec3 (.. math -Vec3))
-
-(defonce ABSOLUTE (.. Size -ABSOLUTE))
 
 (defn events->chan
   "Given a node and event type return a channel of
