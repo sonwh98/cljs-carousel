@@ -19,6 +19,24 @@
 
 (defonce ABSOLUTE (.. Size -ABSOLUTE))
 
+(defn famous-compare [x y]
+  "Compare famous javascript objects. See https://github.com/tonsky/datascript/issues/69"
+  (let [str-x (.. js/JSON (stringify x))
+        str-y (.. js/JSON (stringify y))]
+    (compare str-x str-y)))
+
+(extend-protocol IComparable
+  FamousBox (^number -compare [x y]
+              (famous-compare x y))
+  Vec3 (^number -compare [x y]
+         (famous-compare x y))
+  Quaternion (^number -compare [x y]
+               (famous-compare x y))
+  Spring (^number -compare [x y]
+           (famous-compare x y))
+  RotationalSpring (^number -compare [x y]
+                     (famous-compare x y)))
+
 (def image-names ["01_-_Autorretrato._Francisco_Goya_y_Lucientes2C_pintor_thumb.jpg"
                   "02_-_El_si_pronuncian_y_la_mano_alargan_al_primero_que_llega_thumb.jpg"
                   "03_-_Que_viene_el_Coco_thumb.jpg"
