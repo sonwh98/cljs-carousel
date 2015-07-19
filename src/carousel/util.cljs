@@ -18,19 +18,19 @@
    (let [node (if (= (type node) PersistentVector)
                 (-> node meta :famous-node)
                 node)]
-    (.. (GestureHandler. node) (on event (fn []
-                                           (put! c event)))))
+     (.. (GestureHandler. node) (on event (fn []
+                                            (put! c event)))))
    c))
 
 (defn attach-component [component-descriptor famous-node]
   (cond
-    (= (type component-descriptor) PersistentVector) (let [component-keyword (first component-descriptor)]
-                                                       (cond
-                                                         (= component-keyword :DOMElement) (DOMElement. famous-node)))
+    (vector? component-descriptor) (let [component-keyword (first component-descriptor)]
+                                     thatyeah the (cond
+                                       (= component-keyword :DOMElement) (DOMElement. famous-node)))
 
-    (= (type component-descriptor) PersistentArrayMap) (let [component (clj->js component-descriptor)]
-                                                         (.. famous-node (addComponent component))
-                                                         component)))
+    (map? component-descriptor) (let [component (clj->js component-descriptor)]
+                                  (.. famous-node (addComponent component))
+                                  component)))
 
 (defn- get-node-by-id [node id]
   (if (= (-> (get-in node [1]) :id) id)
@@ -131,7 +131,7 @@
             (.. a-component (setProperty name value)))))
       
       
-      ;(attach-component components famous-node)
+                                        ;(attach-component components famous-node)
       )
 
 
@@ -149,7 +149,7 @@
                                                                 (setRotation (nth r 0) (nth r 1) (nth r 2) (nth r 3))))
 
                                                           (this-as this
-                                                            (.. FamousEngine (requestUpdateOnNextTick this)))
+                                                                   (.. FamousEngine (requestUpdateOnNextTick this)))
                                                           )})))
 
     (.. FamousEngine init)))
