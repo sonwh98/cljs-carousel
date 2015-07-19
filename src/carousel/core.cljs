@@ -50,6 +50,80 @@
                   "12_-_A_caza_de_dientes_thumb.jpg"
                   "13_-_Estan_calientes_thumb.jpg"])
 
+(def s [{:node/id       "root"
+         :node/children [{:node/id            "back"
+                          :node/size-mode     [ABSOLUTE ABSOLUTE]
+                          :node/absolute-size [40 40]
+                          :node/position      [40 0 0]
+                          :node/align         [0 0.5 0]
+                          :node/mount-point   [0 0.5 0]
+                          :node/components    [{:component/type :DOMElement
+                                                :color          "white"
+                                                :fontSize       "40px"
+                                                :lineHeight     "40px"
+                                                :cursor         "pointer"
+                                                :textHighlight  "none"
+                                                :zIndex         "2"
+                                                :content        "<"}]}
+                         {:node/id            "next"
+                          :node/size-mode     [ABSOLUTE ABSOLUTE]
+                          :node/absolute-size [40 40]
+                          :node/position      [-40 0 0]
+                          :node/align         [1 0.5 0]
+                          :node/mount-point   [1 0.5 0]
+                          :node/components    [{:component/type :DOMElement
+                                                :color          "white"
+                                                :fontSize       "40px"
+                                                :lineHeight     "40px"
+                                                :cursor         "pointer"
+                                                :textHighlight  "none"
+                                                :zIndex         "2"
+                                                :content        ">"}]}
+                         {:node/id          "pager"
+                          :node/align       [0.5 0.5 0]
+                          :node/mount-point [0.5 0.5 0]
+                          :node/children    (for [image-name image-names
+                                                  :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
+                                                        image-url (str url-base image-name)
+                                                        url (str "url('" image-url "')")
+                                                        box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
+                                                        anchor (Vec3. 1 0 0)
+                                                        quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
+                                              {:node/id            (str "page" (rand-int 100))
+                                               :node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                                               :node/absolute-size [500 500 0]
+                                               :node/align         [0.5 0.5]
+                                               :node/mount-point   [0.5 0.5]
+                                               :node/origin        [0.5 0.5]
+                                               :node/components    [{:component/type    :DOMElement
+                                                                     :backgroundImage   url
+                                                                     :background-repeat "no-repeat"
+                                                                     :background-size   "cover"}]
+                                               :node/physics       {:box               box
+                                                                    :anchor            anchor
+                                                                    :spring            (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
+                                                                    :quaternion        quaternion
+                                                                    :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}
+
+                                               })}
+                         {:node/id            "dots"
+                          :node/size-mode     [ABSOLUTE ABSOLUTE]
+                          :node/absolute-size [20 20]
+                          :node/position      [0 -50 0]
+                          :node/align         [0.5 1 0]
+                          :node/mount-point   [0.5 1 0]
+                          :node/children      (for [i (-> image-names count range)]
+                                                {:node/id            (str "dot" (rand-int 100))
+                                                 :node/size-mode     [ABSOLUTE ABSOLUTE]
+                                                 :node/absolute-size [10 10]
+                                                 :node/components    [{:component/type  :DOMElement
+                                                                       :borderRadius    "15px"
+                                                                       :border          "2px solid white"
+                                                                       :backgroundColor (if (= i 0)
+                                                                                          "white"
+                                                                                          "transparent")
+                                                                       :boxSizing       "border-box"}]})}]}])
+
 (def scene-graph [:node {:id "root"}
                   [[:node {:id            "back"
                            :size-mode     [ABSOLUTE ABSOLUTE]
@@ -219,64 +293,9 @@
                                :db/valueType   :db.type/ref}})
 
 (def conn (d/create-conn schema))
-(def s [{:node/id       "root"
-         :node/children [{:node/id            "back"
-                          :node/size-mode     [ABSOLUTE ABSOLUTE]
-                          :node/absolute-size [40 40]
-                          :node/position      [40 0 0]
-                          :node/align         [0 0.5 0]
-                          :node/mount-point   [0 0.5 0]
-                          :node/components    [{:component/type :DOMElement
-                                                :color          "white"
-                                                :fontSize       "40px"
-                                                :lineHeight     "40px"
-                                                :cursor         "pointer"
-                                                :textHighlight  "none"
-                                                :zIndex         "2"
-                                                :content        "<"}]}
-                         {:node/id            "next"
-                          :node/size-mode     [ABSOLUTE ABSOLUTE]
-                          :node/absolute-size [40 40]
-                          :node/position      [-40 0 0]
-                          :node/align         [1 0.5 0]
-                          :node/mount-point   [1 0.5 0]
-                          :node/components    [{:component/type :DOMElement
-                                                :color          "white"
-                                                :fontSize       "40px"
-                                                :lineHeight     "40px"
-                                                :cursor         "pointer"
-                                                :textHighlight  "none"
-                                                :zIndex         "2"
-                                                :content        ">"}]}
-                         {:node/id          "pager"
-                          :node/align       [0.5 0.5 0]
-                          :node/mount-point [0.5 0.5 0]
-                          :node/children    (for [image-name image-names
-                                                  :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
-                                                        image-url (str url-base image-name)
-                                                        url (str "url('" image-url "')")
-                                                        box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
-                                                        anchor (Vec3. 1 0 0)
-                                                        quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                                              {:node/id            (str "page" (rand-int 100))
-                                               :node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
-                                               :node/absolute-size [500 500 0]
-                                               :node/align         [0.5 0.5]
-                                               :node/mount-point   [0.5 0.5]
-                                               :node/origin        [0.5 0.5]
-                                               :node/components    [{:component/type    :DOMElement
-                                                                     :backgroundImage   url
-                                                                     :background-repeat "no-repeat"
-                                                                     :background-size   "cover"}]
-                                               :node/physics       {:box               box
-                                                                    :anchor            anchor
-                                                                    :spring            (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
-                                                                    :quaternion        quaternion
-                                                                    :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}
 
-                                               })}]}])
 (d/transact! conn s)
-(def pager (-> (d/q '[:find (pull ?n [*]) :where [?n :node/id "pager"]] @conn) ffirst ))
+(def pager (-> (d/q '[:find (pull ?n [*]) :where [?n :node/id "pager"]] @conn) ffirst))
 (def n (->> 3 (d/entity @conn) d/touch))
 (def c (:node/components n))
 (def c1 (first c))
@@ -286,4 +305,4 @@
 
 (d/q '[:find (pull ?n [:node/absolute-size]) :where [?n :node/id "next"]] @conn)
 
-(d/q '[:find (pull ?n [*])  :where [?n :node/physics _] ] @conn)
+(d/q '[:find (pull ?n [*]) :where [?n :node/physics _]] @conn)
