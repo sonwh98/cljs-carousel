@@ -215,14 +215,7 @@
                           :node/position      [-40 0 0]
                           :node/align         [1 0.5 0]
                           :node/mount-point   [1 0.5 0]
-                          :node/components    [{:component/type "DOMElement"
-                                                :color         "white"
-                                                :fontSize      "40px"
-                                                :lineHeight    "40px"
-                                                :cursor        "pointer"
-                                                :textHighlight "none"
-                                                :zIndex        "2"
-                                                :content       ">"}]}
+                          }
                          {:node/id          "pager"
                           :node/align       [0.5 0.5 0]
                           :node/mount-point [0.5 0.5 0]
@@ -233,23 +226,17 @@
                                                      box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
                                                      anchor (Vec3. 1 0 0)
                                                      quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                                           {:node/id            "page"
+                                           {:node/id            (str "page" (rand-int 100))
                                             :node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
                                             :node/absolute-size [500 500 0]
                                             :node/align         [0.5 0.5]
                                             :node/mount-point   [0.5 0.5]
-                                            :node/origin        [0.5 0.5]
-                                            :node/components    [{:component/type "DOMElement"
-                                                                  :backgroundImage   url
-                                                                  :background-repeat "no-repeat"
-                                                                  :background-size   "cover"}]
-                                            :node/physics       {:box               box
-                                                                 :anchor            anchor
-                                                                 :spring            (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
-                                                                 :quaternion        quaternion
-                                                                 :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}})}]}])
+                                            :node/origin        [0.5 0.5]})}]}])
 (d/transact! conn s)
 (d/q '[:find ?n :where [?n :node/id "next"]] @conn)
 (def n (->> 3 (d/entity @conn) d/touch) )
 (def c (:node/components n))
 (def c1 (first c))
+
+(d/q '[:find ?n :where [?n :node/id ?page] [(= (subs ?page 0 4) "page")]] @conn)
+(d/q '[:find ?n :where [?n :node/components _] ] @conn)
