@@ -172,8 +172,18 @@
       (while true
         (let [[v channel] (alts! [back-clicks next-clicks])]
           (cond
-            (= channel back-clicks) (swap! current-index dec)
-            (= channel next-clicks) (swap! current-index inc)))))))
+            (= channel back-clicks) (swap! current-index (fn [index]
+                                                           (println index)
+                                                           (let [new-index (dec index)]
+                                                             (if (neg? new-index)
+                                                               (->(count image-names) dec)
+                                                               new-index))))
+            (= channel next-clicks) (swap! current-index (fn [index]
+                                                           (println index)
+                                                           (let [new-index (inc index)]
+                                                             (if (>= new-index (- (count image-names) 1) )
+                                                               0
+                                                               new-index))))))))))
 
 (start)
 
