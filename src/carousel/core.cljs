@@ -209,6 +209,7 @@
 
 (def schema {:node/id         {:db/unique :db.unique/identity}
              :node/children   {:db/cardinality :db.cardinality/many
+                               :db/isComponent true
                                :db/valueType   :db.type/ref}
              :node/components {:db/cardinality :db.cardinality/many
                                :db/isComponent true
@@ -275,7 +276,7 @@
 
                                                })}]}])
 (d/transact! conn s)
-(d/q '[:find ?n :where [?n :node/id "next"]] @conn)
+(def pager (-> (d/q '[:find (pull ?n [*]) :where [?n :node/id "pager"]] @conn) ffirst ))
 (def n (->> 3 (d/entity @conn) d/touch))
 (def c (:node/components n))
 (def c1 (first c))
@@ -284,3 +285,5 @@
 (map #(->> % first (d/entity @conn) (d/touch)) (d/q '[:find ?n :where [?n :node/components _]] @conn))
 
 (d/q '[:find (pull ?n [:node/absolute-size]) :where [?n :node/id "next"]] @conn)
+
+(d/q '[:find (pull ?n [*])  :where [?n :node/physics _] ] @conn)
