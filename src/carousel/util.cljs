@@ -1,5 +1,6 @@
 (ns ^:figwheel-always carousel.util
     (:require [cljs.core.async :refer [put! chan] ]
+              [datascript :as d]
               [com.famous.Famous]))
 
 (defonce famous js/famous)
@@ -25,7 +26,7 @@
 (defn attach-component [component-descriptor famous-node]
   (cond
     (vector? component-descriptor) (let [component-keyword (first component-descriptor)]
-                                     thatyeah the (cond
+                                     (cond
                                        (= component-keyword :DOMElement) (DOMElement. famous-node)))
 
     (map? component-descriptor) (let [component (clj->js component-descriptor)]
