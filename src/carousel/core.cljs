@@ -194,7 +194,10 @@
                                :db/valueType   :db.type/ref}
              :node/components {:db/cardinality :db.cardinality/many
                                :db/isComponent true
-                               :db/valueType   :db.type/ref}})
+                               :db/valueType   :db.type/ref}
+             :node/physics {:db/cardinality :db.cardinality/one
+                            :db/isComponent true
+                            :db/valueType   :db.type/ref}})
 
 (def conn (d/create-conn schema))
 (def s [{:node/id       "root"
@@ -204,7 +207,7 @@
                           :node/position      [40 0 0]
                           :node/align         [0 0.5 0]
                           :node/mount-point   [0 0.5 0]
-                          :node/components    [{:component/type "DOMElement"
+                          :node/components    [{:component/type :DOMElement
                                                 :color          "white"
                                                 :fontSize       "40px"
                                                 :lineHeight     "40px"
@@ -218,7 +221,7 @@
                           :node/position      [-40 0 0]
                           :node/align         [1 0.5 0]
                           :node/mount-point   [1 0.5 0]
-                          :node/components    [{:component/type "DOMElement"
+                          :node/components    [{:component/type :DOMElement
                                                 :color          "white"
                                                 :fontSize       "40px"
                                                 :lineHeight     "40px"
@@ -241,7 +244,14 @@
                                                :node/absolute-size [500 500 0]
                                                :node/align         [0.5 0.5]
                                                :node/mount-point   [0.5 0.5]
-                                               :node/origin        [0.5 0.5]})}]}])
+                                               :node/origin        [0.5 0.5]
+                                               :node/components    [{:component/type    :DOMElement
+                                                                     :backgroundImage   url
+                                                                     :background-repeat "no-repeat"
+                                                                     :background-size   "cover"}]
+                                               :node/physics {:box [(list anchor) ] }
+                                               
+                                               })}]}])
 (d/transact! conn s)
 (d/q '[:find ?n :where [?n :node/id "next"]] @conn)
 (def n (->> 3 (d/entity @conn) d/touch))
