@@ -250,3 +250,5 @@
 
 (d/q '[:find ?n :where [?n :node/id ?page] [(= (subs ?page 0 4) "page")]] @conn)
 (map #(->> % first (d/entity @conn) (d/touch)) (d/q '[:find ?n :where [?n :node/components _]] @conn))
+
+(d/q '[:find (pull ?n [:node/absolute-size]) :where [?n :node/id "next"]] @conn)
