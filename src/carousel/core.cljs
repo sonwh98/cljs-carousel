@@ -195,9 +195,9 @@
              :node/components {:db/cardinality :db.cardinality/many
                                :db/isComponent true
                                :db/valueType   :db.type/ref}
-             :node/physics {:db/cardinality :db.cardinality/one
-                            :db/isComponent true
-                            :db/valueType   :db.type/ref}})
+             :node/physics    {:db/cardinality :db.cardinality/one
+                               :db/isComponent true
+                               :db/valueType   :db.type/ref}})
 
 (def conn (d/create-conn schema))
 (def s [{:node/id       "root"
@@ -249,8 +249,12 @@
                                                                      :backgroundImage   url
                                                                      :background-repeat "no-repeat"
                                                                      :background-size   "cover"}]
-                                               :node/physics {:box [(list anchor) ] }
-                                               
+                                               :node/physics       {:box               box
+                                                                    :anchor            anchor
+                                                                    :spring            (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
+                                                                    :quaternion        quaternion
+                                                                    :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}
+
                                                })}]}])
 (d/transact! conn s)
 (d/q '[:find ?n :where [?n :node/id "next"]] @conn)
