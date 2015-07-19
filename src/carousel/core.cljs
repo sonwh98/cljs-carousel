@@ -1,9 +1,9 @@
 (ns ^:figwheel-always carousel.core
-    (:require-macros [cljs.core.async.macros :refer [go]])
-    (:require [com.famous.Famous]
-              [datascript :as d]
-              [carousel.util :as util :refer [events->chan attach-famous-node-to-scene-graph get-node-by-id render-scene-graph]]
-              [cljs.core.async :refer [>! <! put! chan alts!]]))
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [com.famous.Famous]
+            [datascript :as d]
+            [carousel.util :as util :refer [events->chan attach-famous-node-to-scene-graph get-node-by-id render-scene-graph]]
+            [cljs.core.async :refer [>! <! put! chan alts!]]))
 
 (enable-console-print!)
 
@@ -146,15 +146,15 @@
                                                                                  (= "DOMElement" (.. component -constructor -name)))
                                                                                (.. node getComponents))))
 
-                                        ;old-dot-node (nth dot-nodes old-index)
-                                        ;old-dot-dom (get-dom-element old-dot-node)
-                                        ;
-                                        ;new-dot-node (nth dot-nodes new-index)
-                                        ;new-dot-dom (get-dom-element new-dot-node)
+                                              ;old-dot-node (nth dot-nodes old-index)
+                                              ;old-dot-dom (get-dom-element old-dot-node)
+                                              ;
+                                              ;new-dot-node (nth dot-nodes new-index)
+                                              ;new-dot-dom (get-dom-element new-dot-node)
                                               ]
-                                        ;(println dot-nodes)
-                                        ;(.. old-dot-dom (setProperty "backgroundColor" "transparent"))
-                                        ;(.. new-dot-dom (setProperty "backgroundColor" "white"))
+                                          ;(println dot-nodes)
+                                          ;(.. old-dot-dom (setProperty "backgroundColor" "transparent"))
+                                          ;(.. new-dot-dom (setProperty "backgroundColor" "white"))
 
                                           (if (< old-index new-index)
                                             (do
@@ -176,12 +176,12 @@
                                                            (println index)
                                                            (let [new-index (dec index)]
                                                              (if (neg? new-index)
-                                                               (->(count image-names) dec)
+                                                               (-> (count image-names) dec)
                                                                new-index))))
             (= channel next-clicks) (swap! current-index (fn [index]
                                                            (println index)
                                                            (let [new-index (inc index)]
-                                                             (if (>= new-index (- (count image-names) 1) )
+                                                             (if (>= new-index (- (count image-names) 1))
                                                                0
                                                                new-index))))))))))
 
@@ -189,12 +189,15 @@
 
 (defonce famous-components {:DOMElement (.. famous -domRenderables -DOMElement)})
 
-(def schema {:node/id   {:db/unique      :db.unique/identity}
-             :node/children {:db/cardinality :db.cardinality/many
-                             :db/valueType   :db.type/ref}})
+(def schema {:node/id         {:db/unique :db.unique/identity}
+             :node/children   {:db/cardinality :db.cardinality/many
+                               :db/valueType   :db.type/ref}
+             :node/components {:db/cardinality :db.cardinality/many
+                               :db/isComponent true
+                               :db/valueType   :db.type/ref}})
 
 (def conn (d/create-conn schema))
-(def s [{:node/id "root"
+(def s [{:node/id       "root"
          :node/children [{:node/id            "back"
                           :node/size-mode     [ABSOLUTE ABSOLUTE]
                           :node/absolute-size [40 40]
@@ -202,41 +205,48 @@
                           :node/align         [0 0.5 0]
                           :node/mount-point   [0 0.5 0]
                           :node/components    [{:component/type "DOMElement"
-                                                :color         "white"
-                                                :fontSize      "40px"
-                                                :lineHeight    "40px"
-                                                :cursor        "pointer"
-                                                :textHighlight "none"
-                                                :zIndex        "2"
-                                                :content       "<"}]}
+                                                :color          "white"
+                                                :fontSize       "40px"
+                                                :lineHeight     "40px"
+                                                :cursor         "pointer"
+                                                :textHighlight  "none"
+                                                :zIndex         "2"
+                                                :content        "<"}]}
                          {:node/id            "next"
                           :node/size-mode     [ABSOLUTE ABSOLUTE]
                           :node/absolute-size [40 40]
                           :node/position      [-40 0 0]
                           :node/align         [1 0.5 0]
                           :node/mount-point   [1 0.5 0]
-                          }
+                          :node/components    [{:component/type "DOMElement"
+                                                :color          "white"
+                                                :fontSize       "40px"
+                                                :lineHeight     "40px"
+                                                :cursor         "pointer"
+                                                :textHighlight  "none"
+                                                :zIndex         "2"
+                                                :content        ">"}]}
                          {:node/id          "pager"
                           :node/align       [0.5 0.5 0]
                           :node/mount-point [0.5 0.5 0]
-                          :node/children (for [image-name image-names
-                                               :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
-                                                     image-url (str url-base image-name)
-                                                     url (str "url('" image-url "')")
-                                                     box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
-                                                     anchor (Vec3. 1 0 0)
-                                                     quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                                           {:node/id            (str "page" (rand-int 100))
-                                            :node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
-                                            :node/absolute-size [500 500 0]
-                                            :node/align         [0.5 0.5]
-                                            :node/mount-point   [0.5 0.5]
-                                            :node/origin        [0.5 0.5]})}]}])
+                          :node/children    (for [image-name image-names
+                                                  :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
+                                                        image-url (str url-base image-name)
+                                                        url (str "url('" image-url "')")
+                                                        box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
+                                                        anchor (Vec3. 1 0 0)
+                                                        quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
+                                              {:node/id            (str "page" (rand-int 100))
+                                               :node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                                               :node/absolute-size [500 500 0]
+                                               :node/align         [0.5 0.5]
+                                               :node/mount-point   [0.5 0.5]
+                                               :node/origin        [0.5 0.5]})}]}])
 (d/transact! conn s)
 (d/q '[:find ?n :where [?n :node/id "next"]] @conn)
-(def n (->> 3 (d/entity @conn) d/touch) )
+(def n (->> 3 (d/entity @conn) d/touch))
 (def c (:node/components n))
 (def c1 (first c))
 
 (d/q '[:find ?n :where [?n :node/id ?page] [(= (subs ?page 0 4) "page")]] @conn)
-(d/q '[:find ?n :where [?n :node/components _] ] @conn)
+(map #(->> % first (d/entity @conn) (d/touch)) (d/q '[:find ?n :where [?n :node/components _]] @conn))
