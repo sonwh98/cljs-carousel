@@ -127,7 +127,7 @@
 (util/save scene-graph)
 
 (defn start []
-  (render-scene-graph)
+  (render-scene-graph "root")
   (let [back-node (get-node-by-id "back")
         back-clicks (events->chan back-node "tap")
 
