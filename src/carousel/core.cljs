@@ -127,10 +127,8 @@
 (util/save scene-graph)
 
 (defn start []
-  (let [scene-graph (attach-famous-node-to-scene-graph (get-node-by-id "root"))
-        _ (render-scene-graph scene-graph)
-
-        back-node (get-node-by-id "back")
+  (render-scene-graph)
+  (let [back-node (get-node-by-id "back")
         back-clicks (events->chan back-node "tap")
 
         next-node (get-node-by-id "next")

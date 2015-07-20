@@ -126,8 +126,9 @@
 (defn find-nodes-with-components []
   (map #(first %) (d/q '[:find (pull ?node [*]) :where [?node :node/components _]] @conn)))
 
-(defn render-scene-graph [scene-graph]
+(defn render-scene-graph []
   (let [simulation (PhysicsEngine.)
+        scene-graph (attach-famous-node-to-scene-graph (get-node-by-id "root"))
         root-node (:node/famous-node scene-graph)
         physics-nodes (find-nodes-with-physics)
         nodes-with-components (find-nodes-with-components)
