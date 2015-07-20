@@ -78,11 +78,10 @@
         component (component-constructor. famous-node)
         properties (dissoc component-descriptor :component/type)
         ]
-    (println "component=" component " famous-node=" famous-node)
+
     (doseq [p properties
             :let [name (name (first p))
                   value (second p)]]
-      (println name " " value)
       (if (= name "content")
         (.. component (setContent value))
         (.. component (setProperty name value))))
@@ -108,13 +107,16 @@
     (.apply (.-setMountPoint famous-node) famous-node mount-point)
     (.apply (.-setOrigin famous-node) famous-node origin)
 
-    (doseq [child-node (:node/children node)]
-      (attach-famous-node-to-scene-graph child-node))
+    (doseq [child-node (:node/children node)
+            :let [a-child-node (attach-famous-node-to-scene-graph child-node)
+                  a-famous-child-node (:node/famous-node a-child-node)]]
+      (.. famous-node (addChild a-famous-child-node))
+      )
 
     (d/transact! conn [{:db/id            (:db/id node)
                         :node/famous-node famous-node}])
 
-    ))
+    (update-in node [:node/famous-node] #(identity famous-node))))
 
 
 (defn find-nodes-with-physics []
