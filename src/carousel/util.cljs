@@ -110,8 +110,7 @@
     (doseq [child-node (:node/children node)
             :let [a-child-node (attach-famous-node-to-scene-graph child-node)
                   a-famous-child-node (:node/famous-node a-child-node)]]
-      (.. famous-node (addChild a-famous-child-node))
-      )
+      (.. famous-node (addChild a-famous-child-node)))
 
     (d/transact! conn [{:db/id            (:db/id node)
                         :node/famous-node famous-node}])
