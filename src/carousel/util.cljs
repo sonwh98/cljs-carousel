@@ -73,22 +73,21 @@
    c))
 
 (defn create-component [component-descriptor famous-node]
-  (let [component-type (:component/type component-descriptor)
-        component (if (keyword? component-type)
-                    (let [component-constructor (famous-components component-type)
-                          component (component-constructor. famous-node)
-                          properties (dissoc component-descriptor :component/type)]
-                      (doseq [p properties
-                              :let [name (name (first p))
-                                    value (second p)]]
-                        (if (= name "content")
-                          (.. component (setContent value))
-                          (.. component (setProperty name value))))
-                      component)
-                    (let [component (clj->js component-descriptor)]
-                      (.. famous-node (addComponent component))
-                      component))]
-    component))
+  (let [component-type (:component/type component-descriptor)]
+    (if (keyword? component-type)
+      (let [component-constructor (famous-components component-type)
+            component (component-constructor. famous-node)
+            properties (dissoc component-descriptor :component/type)]
+        (doseq [p properties
+                :let [name (name (first p))
+                      value (second p)]]
+          (if (= name "content")
+            (.. component (setContent value))
+            (.. component (setProperty name value))))
+        component)
+      (let [component (clj->js component-descriptor)]
+        (.. famous-node (addComponent component))
+        component))))
 
 (defn- get-node-by-id [id]
   (ffirst (d/q '[:find (pull ?node [*]) :in $ ?id :where [?node :node/id ?id]] @conn id)))
