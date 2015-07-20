@@ -127,8 +127,8 @@
 (util/save scene-graph)
 
 (defn start []
-  (let [scene-graph (get-node-by-id "root")
-        scene-graph (attach-famous-node-to-scene-graph scene-graph)
+  (let [scene-graph (attach-famous-node-to-scene-graph (get-node-by-id "root"))
+        _ (render-scene-graph scene-graph)
 
         back-node (get-node-by-id "back")
         back-clicks (events->chan back-node "tap")
@@ -139,7 +139,7 @@
         pager-node (get-node-by-id "pager")
         pages (:node/children pager-node)
         current-index (atom 0)]
-    (render-scene-graph scene-graph)
+
     (add-watch current-index :watcher (fn [key atom old-index new-index]
                                         (let [dot-nodes (:node/children (get-node-by-id "dots"))
                                               old-page-node (nth pages old-index)
