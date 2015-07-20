@@ -99,7 +99,7 @@
                                                                                 dot-nodes (:node/children dots)
                                                                                 size (IndexedSeq. size 0)
                                                                                 dotWidth 10
-                                                                                numPages 5
+                                                                                numPages (count image-names)
                                                                                 spacing 5
                                                                                 totalDotSize (+ (* numPages dotWidth)
                                                                                                 (* spacing (dec numPages)))
