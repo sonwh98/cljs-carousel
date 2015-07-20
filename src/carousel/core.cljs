@@ -93,6 +93,25 @@
                                     :node/position      [0 -50 0]
                                     :node/align         [0.5 1 0]
                                     :node/mount-point   [0.5 1 0]
+                                    :node/components    [{:onSizeChange (fn [^Float32Array size]
+                                                                          "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
+                                                                          (let [dots (get-node-by-id "dots")
+                                                                                dot-nodes (:node/children dots)
+                                                                                size (IndexedSeq. size 0)
+                                                                                dotWidth 10
+                                                                                numPages 5
+                                                                                spacing 5
+                                                                                totalDotSize (+ (* numPages dotWidth)
+                                                                                                (* spacing (dec numPages)))
+                                                                                start-x (/ (- (nth size 0) totalDotSize)
+                                                                                           2)]
+                                                                            (doseq [n (-> image-names count range)
+                                                                                    :let [dot-node (:node/famous-node (nth dot-nodes n))]]
+                                                                              (.. dot-node (setPosition (+ start-x
+                                                                                                           (* n
+                                                                                                              (+ dotWidth spacing)))
+                                                                                                        0
+                                                                                                        0)))))}]
                                     :node/children      (for [i (-> image-names count range)]
                                                           {:node/id            (str "dot" (rand-int 100))
                                                            :node/size-mode     [ABSOLUTE ABSOLUTE]
@@ -121,25 +140,6 @@
         pages (:node/children pager-node)
         dots (get-node-by-id "dots")
         current-index (atom 0)]
-
-    (.. (:node/famous-node dots) (addComponent (clj->js {:onSizeChange (fn [^Float32Array size]
-                                                                         "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
-                                                                         (let [dot-nodes (:node/children dots)
-                                                                               size (IndexedSeq. size 0)
-                                                                               dotWidth 10
-                                                                               numPages 5
-                                                                               spacing 5
-                                                                               totalDotSize (+ (* numPages dotWidth)
-                                                                                               (* spacing (dec numPages)))
-                                                                               start-x (/ (- (nth size 0) totalDotSize)
-                                                                                          2)]
-                                                                           (doseq [n (-> image-names count range)
-                                                                                   :let [dot-node (:node/famous-node (nth dot-nodes n))]]
-                                                                             (.. dot-node (setPosition (+ start-x
-                                                                                                          (* n
-                                                                                                             (+ dotWidth spacing)))
-                                                                                                       0
-                                                                                                       0)))))})))
     (render-scene-graph scene-graph)
     (add-watch current-index :watcher (fn [key atom old-index new-index]
                                         (let [dot-nodes (-> (get-node-by-id "dots") vec)
