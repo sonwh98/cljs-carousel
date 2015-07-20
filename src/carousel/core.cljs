@@ -118,7 +118,7 @@
         next-clicks (events->chan next-node "tap")
 
         pager-node (get-node-by-id "pager")
-        pages (pager-node 2)
+        pages (:node/children pager-node)
         dots (get-node-by-id "dots")
         current-index (atom 0)]
 
@@ -144,10 +144,10 @@
     (add-watch current-index :watcher (fn [key atom old-index new-index]
                                         (let [dot-nodes (-> (get-node-by-id "dots") vec)
                                               old-page-node (nth pages old-index)
-                                              old-page-physics (-> old-page-node second :physics)
+                                              old-page-physics (:node/physics old-page-node)
 
                                               new-page-node (nth pages new-index)
-                                              new-page-physics (-> new-page-node second :physics)
+                                              new-page-physics (:node/physics new-page-node)
                                               get-dom-element (fn [node]
                                                                 (first (filter (fn [component]
                                                                                  (= "DOMElement" (.. component -constructor -name)))
