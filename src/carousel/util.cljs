@@ -57,7 +57,7 @@
 (def conn (d/create-conn schema))
 
 (defn save [scene-graph]
-  (d/transact! conn scene-graph))
+  (d/transact! conn [scene-graph]))
 
 (defn events->chan
   "Given a node and event type return a channel of
