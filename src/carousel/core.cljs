@@ -1,6 +1,7 @@
 (ns ^:figwheel-always carousel.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [com.famous.Famous]
+            [reagent.core :as reagent]
             [carousel.util :as util :refer [events->chan get-node-by-id render-scene-graph]]
             [cljs.core.async :refer [alts!]]))
 
@@ -183,3 +184,9 @@
 
 (start)
 
+(def world (reagent/atom "World"))
+
+(defn hello []
+  [:h1 {:style {:color "white"}} "Hello" @world])
+
+(reagent/render-component [hello] (.. js/document (getElementById "react")))

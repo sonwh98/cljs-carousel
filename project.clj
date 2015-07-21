@@ -16,7 +16,7 @@
                       [lein-figwheel "0.3.3"]]
 
             :source-paths ["src"]
-            :resource-paths ["/home/ssd2/sto/workspace/reagent/target/reagent-0.5.1-SNAPSHOT-standalone.jar" "resources"]
+            ;:resource-paths ["/home/ssd2/sto/workspace/reagent/target/reagent-0.5.1-SNAPSHOT-standalone.jar" "resources"]
             :clean-targets ^{:protect false} ["resources/public/js/compiled"]
 
             :cljsbuild {
