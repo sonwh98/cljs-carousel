@@ -32,6 +32,14 @@
                   "12_-_A_caza_de_dientes_thumb.jpg"
                   "13_-_Estan_calientes_thumb.jpg"])
 
+
+(def image-name (reagent/atom (image-names 0)))
+
+(defn image-description []
+  [:h1 {:style {:color "white"}} "Description: " @image-name])
+
+(reagent/render-component [image-description] (.. js/document (getElementById "react")))
+
 (def scene-graph [{:node/id       "root"
                    :node/children [{:node/id            "back"
                                     :node/size-mode     [ABSOLUTE ABSOLUTE]
@@ -156,6 +164,8 @@
                                            (.. old-dot-dom (setProperty "backgroundColor" "transparent"))
                                            (.. new-dot-dom (setProperty "backgroundColor" "white"))
 
+                                           (reset! image-name (image-names new-page-index))
+
                                            (if (< old-page-index new-page-index)
                                              (do
                                                (.. (:anchor old-page-physics) (set -1 0 0))
@@ -184,9 +194,3 @@
 
 (start)
 
-(def world (reagent/atom "World"))
-
-(defn hello []
-  [:h1 {:style {:color "white"}} "Hello" @world])
-
-(reagent/render-component [hello] (.. js/document (getElementById "react")))
