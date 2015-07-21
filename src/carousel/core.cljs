@@ -70,8 +70,7 @@
                                                                   box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
                                                                   anchor (Vec3. 1 0 0)
                                                                   quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                                                        {:node/id            (str "page" (rand-int 100))
-                                                         :node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                                                        {:node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
                                                          :node/absolute-size [500 500 0]
                                                          :node/align         [0.5 0.5]
                                                          :node/mount-point   [0.5 0.5]
@@ -113,8 +112,7 @@
                                                                                                         0
                                                                                                         0)))))}]
                                     :node/children      (for [i (-> image-names count range)]
-                                                          {:node/id            (str "dot" i)
-                                                           :node/size-mode     [ABSOLUTE ABSOLUTE]
+                                                          {:node/size-mode     [ABSOLUTE ABSOLUTE]
                                                            :node/absolute-size [10 10]
                                                            :node/components    [{:component/type  :DOMElement
                                                                                  :borderRadius    "15px"
@@ -181,7 +179,7 @@
             (= channel next-clicks) (swap! current-index (fn [index]
                                                            (println index)
                                                            (let [new-index (inc index)]
-                                                             (if (>= new-index (- (count image-names) 1))
+                                                             (if (>= new-index (count image-names))
                                                                0
                                                                new-index))))))))))
 
