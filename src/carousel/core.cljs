@@ -113,7 +113,7 @@
                                                                                                         0
                                                                                                         0)))))}]
                                     :node/children      (for [i (-> image-names count range)]
-                                                          {:node/id            (str "dot" (rand-int 100))
+                                                          {:node/id            (str "dot" i)
                                                            :node/size-mode     [ABSOLUTE ABSOLUTE]
                                                            :node/absolute-size [10 10]
                                                            :node/components    [{:component/type  :DOMElement
@@ -134,12 +134,11 @@
         next-node (get-node-by-id "next")
         next-clicks (events->chan next-node "tap")
 
-        pager-node (get-node-by-id "pager")
-        pages (:node/children pager-node)
         current-index (atom 0)]
-
     (add-watch current-index :watcher (fn [key atom old-index new-index]
-                                        (let [dot-nodes (:node/children (get-node-by-id "dots"))
+                                        (let [pager-node (get-node-by-id "pager")
+                                              pages (:node/children pager-node)
+                                              dot-nodes (:node/children (get-node-by-id "dots"))
                                               old-page-node (nth pages old-index)
                                               old-page-physics (:node/physics old-page-node)
 
