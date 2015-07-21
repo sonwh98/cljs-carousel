@@ -143,6 +143,7 @@
                                               new-page-node (nth pages new-index)
                                               new-page-physics (:node/physics new-page-node)
                                               get-dom-element (fn [node]
+                                                                "Is there a better way of getting a DOMElement component from a Node?"
                                                                 (first (filter (fn [component]
                                                                                  (= "DOMElement" (.. component -constructor -name)))
                                                                                (.. node getComponents))))
