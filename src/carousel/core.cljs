@@ -132,54 +132,54 @@
         next-node (get-node-by-id "next")
         next-clicks (events->chan next-node "tap")
 
-        current-index (atom 0)]
-    (add-watch current-index :watcher (fn [key atom old-index new-index]
-                                        (let [pager-node (get-node-by-id "pager")
-                                              pages (:node/children pager-node)
-                                              dot-nodes (:node/children (get-node-by-id "dots"))
-                                              old-page-node (nth pages old-index)
-                                              old-page-physics (:node/physics old-page-node)
+        page-index (atom 0)]
+    (add-watch page-index :page-change (fn [key atom old-page-index new-page-index]
+                                         (let [pager-node (get-node-by-id "pager")
+                                               pages (:node/children pager-node)
+                                               dot-nodes (:node/children (get-node-by-id "dots"))
+                                               old-page-node (nth pages old-page-index)
+                                               old-page-physics (:node/physics old-page-node)
 
-                                              new-page-node (nth pages new-index)
-                                              new-page-physics (:node/physics new-page-node)
-                                              get-dom-element (fn [node]
-                                                                "Is there a better way of getting a DOMElement component from a Node?"
-                                                                (first (filter (fn [component]
-                                                                                 (= "DOMElement" (.. component -constructor -name)))
-                                                                               (.. node getComponents))))
-                                              old-dot-node (nth dot-nodes old-index)
-                                              old-dot-dom (get-dom-element (:node/famous-node old-dot-node))
+                                               new-page-node (nth pages new-page-index)
+                                               new-page-physics (:node/physics new-page-node)
+                                               get-dom-element (fn [node]
+                                                                 "Is there a better way of getting a DOMElement component from a Node?"
+                                                                 (first (filter (fn [component]
+                                                                                  (= "DOMElement" (.. component -constructor -name)))
+                                                                                (.. node getComponents))))
+                                               old-dot-node (nth dot-nodes old-page-index)
+                                               old-dot-dom (get-dom-element (:node/famous-node old-dot-node))
 
-                                              new-dot-node (nth dot-nodes new-index)
-                                              new-dot-dom (get-dom-element (:node/famous-node new-dot-node))]
-                                          (.. old-dot-dom (setProperty "backgroundColor" "transparent"))
-                                          (.. new-dot-dom (setProperty "backgroundColor" "white"))
+                                               new-dot-node (nth dot-nodes new-page-index)
+                                               new-dot-dom (get-dom-element (:node/famous-node new-dot-node))]
+                                           (.. old-dot-dom (setProperty "backgroundColor" "transparent"))
+                                           (.. new-dot-dom (setProperty "backgroundColor" "white"))
 
-                                          (if (< old-index new-index)
-                                            (do
-                                              (.. (:anchor old-page-physics) (set -1 0 0))
-                                              (.. (:quaternion old-page-physics) (fromEuler 0 (/ (.. js/Math -PI) 2) 0))
-                                              (.. (:anchor new-page-physics) (set 0 0 0))
-                                              (.. (:quaternion new-page-physics) (set 1 0 0 0)))
-                                            (do
-                                              (.. (:anchor old-page-physics) (set 1 0 0))
-                                              (.. (:quaternion old-page-physics) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))
-                                              (.. (:anchor new-page-physics) (set 0 0 0))
-                                              (.. (:quaternion new-page-physics) (set 1 0 0 0))))))
+                                           (if (< old-page-index new-page-index)
+                                             (do
+                                               (.. (:anchor old-page-physics) (set -1 0 0))
+                                               (.. (:quaternion old-page-physics) (fromEuler 0 (/ (.. js/Math -PI) 2) 0))
+                                               (.. (:anchor new-page-physics) (set 0 0 0))
+                                               (.. (:quaternion new-page-physics) (set 1 0 0 0)))
+                                             (do
+                                               (.. (:anchor old-page-physics) (set 1 0 0))
+                                               (.. (:quaternion old-page-physics) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))
+                                               (.. (:anchor new-page-physics) (set 0 0 0))
+                                               (.. (:quaternion new-page-physics) (set 1 0 0 0))))))
                )
     (go
       (while true
         (let [[v channel] (alts! [back-clicks next-clicks])]
           (cond
-            (= channel back-clicks) (swap! current-index (fn [index]
-                                                           (println index)
-                                                           (let [new-index (dec index)]
-                                                             (if (neg? new-index)
-                                                               (-> (count image-names) dec)
-                                                               new-index))))
-            (= channel next-clicks) (swap! current-index (fn [index]
-                                                           (println index)
-                                                           (mod (inc index) (count image-names))))))))))
+            (= channel back-clicks) (swap! page-index (fn [index]
+                                                        (println index)
+                                                        (let [new-index (dec index)]
+                                                          (if (neg? new-index)
+                                                            (-> (count image-names) dec)
+                                                            new-index))))
+            (= channel next-clicks) (swap! page-index (fn [index]
+                                                        (println index)
+                                                        (mod (inc index) (count image-names))))))))))
 
 (start)
 
