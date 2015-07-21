@@ -1,8 +1,8 @@
 (ns ^:figwheel-always carousel.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [com.famous.Famous]
-            [carousel.util :as util :refer [events->chan attach-famous-node-to-scene-graph get-node-by-id render-scene-graph]]
-            [cljs.core.async :refer [>! <! put! chan alts!]]))
+            [carousel.util :as util :refer [events->chan  get-node-by-id render-scene-graph]]
+            [cljs.core.async :refer [alts!]]))
 
 (enable-console-print!)
 
