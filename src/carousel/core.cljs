@@ -1,7 +1,7 @@
 (ns ^:figwheel-always carousel.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [com.famous.Famous]
-            [carousel.util :as util :refer [events->chan  get-node-by-id render-scene-graph]]
+            [carousel.util :as util :refer [events->chan get-node-by-id render-scene-graph]]
             [cljs.core.async :refer [alts!]]))
 
 (enable-console-print!)
@@ -178,10 +178,7 @@
                                                                new-index))))
             (= channel next-clicks) (swap! current-index (fn [index]
                                                            (println index)
-                                                           (let [new-index (inc index)]
-                                                             (if (>= new-index (count image-names))
-                                                               0
-                                                               new-index))))))))))
+                                                           (mod (inc index) (count image-names))))))))))
 
 (start)
 
