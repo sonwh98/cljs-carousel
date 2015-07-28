@@ -9,7 +9,7 @@
                            [figwheel "0.3.3"]
                            [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                            [datascript "0.11.5"]
-                           [com.famous/famous "0.7.0"]
+                           [com.kaicode/infamous "0.7-SNAPSHOT"]
                            [reagent "0.5.0"]]
 
             :plugins [[lein-cljsbuild "1.0.6"]
