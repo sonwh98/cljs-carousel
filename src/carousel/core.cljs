@@ -100,7 +100,6 @@
                                    :node/align         [0.5 1 0]
                                    :node/mount-point   [0.5 1 0]
                                    :node/components    [{:onSizeChange (fn [^Float32Array size]
-                                                                           "NOTE: this call back is called only once because root-dot setSizeMode is ABSOLUTE (value of 1)"
                                                                            (let [dots (infamous/get-node-by-id "dots")
                                                                                  dot-nodes (:node/children dots)
                                                                                  size (IndexedSeq. size 0)
