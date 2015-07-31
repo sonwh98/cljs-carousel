@@ -129,8 +129,7 @@
                                                                                    :boxSizing       "border-box"}]})}]})
 
 (defn start []
-      (infamous/save scene-graph)
-      (infamous/render-scene-graph "root")
+      (infamous/render-scene-graph scene-graph "body")
       (let [back-node (infamous/get-node-by-id "back")
             back-clicks (infamous/events->chan back-node "tap" #(identity %))
 

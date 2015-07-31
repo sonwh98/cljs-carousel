@@ -9,11 +9,11 @@
                            [figwheel "0.3.3"]
                            [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                            [datascript "0.11.5"]
-                           [com.kaicode/infamous "0.7-SNAPSHOT"]
+                           [com.kaicode/infamous "0.7.2-SNAPSHOT"]
                            [reagent "0.5.0"]]
 
             :plugins [[lein-cljsbuild "1.0.6"]
-                      [lein-figwheel "0.3.3"]]
+                      [lein-figwheel "0.3.7"]]
 
             :source-paths ["src"]
             ;:resource-paths ["/home/ssd2/sto/workspace/reagent/target/reagent-0.5.1-SNAPSHOT-standalone.jar" "resources"]
