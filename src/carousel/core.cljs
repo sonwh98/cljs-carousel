@@ -38,95 +38,97 @@
 
 (reagent/render-component [image-description] (.. js/document (getElementById "react")))
 
-(def scene-graph {:node/id       "root"
-                  :node/children [{:node/id            "back"
-                                   :node/size-mode     [ABSOLUTE ABSOLUTE]
-                                   :node/absolute-size [40 40]
-                                   :node/position      [40 0 0]
-                                   :node/align         [0 0.5 0]
-                                   :node/mount-point   [0 0.5 0]
-                                   :node/components    [{:component/type :DOMElement
-                                                         :color          "white"
-                                                         :fontSize       "40px"
-                                                         :lineHeight     "40px"
-                                                         :cursor         "pointer"
-                                                         :textHighlight  "none"
-                                                         :zIndex         "2"
-                                                         :content        "<"}]}
-                                  {:node/id            "next"
-                                   :node/size-mode     [ABSOLUTE ABSOLUTE]
-                                   :node/absolute-size [40 40]
-                                   :node/position      [-40 0 0]
-                                   :node/align         [1 0.5 0]
-                                   :node/mount-point   [1 0.5 0]
-                                   :node/components    [{:component/type :DOMElement
-                                                         :color          "white"
-                                                         :fontSize       "40px"
-                                                         :lineHeight     "40px"
-                                                         :cursor         "pointer"
-                                                         :textHighlight  "none"
-                                                         :zIndex         "2"
-                                                         :content        ">"}]}
-                                  {:node/id          "pager"
-                                   :node/align       [0.5 0.5 0]
-                                   :node/mount-point [0.5 0.5 0]
-                                   :node/children    (for [image-name image-names
-                                                           :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
-                                                                 image-url (str url-base image-name)
-                                                                 url (str "url('" image-url "')")
-                                                                 box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
-                                                                 anchor (Vec3. 1 0 0)
-                                                                 quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
-                                                          {:node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
-                                                           :node/absolute-size [500 500 0]
-                                                           :node/align         [0.5 0.5]
-                                                           :node/mount-point   [0.5 0.5]
-                                                           :node/origin        [0.5 0.5]
-                                                           :node/components    [{:component/type    :DOMElement
-                                                                                 :backgroundImage   url
-                                                                                 :background-repeat "no-repeat"
-                                                                                 :background-size   "cover"}]
-                                                           :node/physics       {:box               box
-                                                                                :anchor            anchor
-                                                                                :spring            (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
-                                                                                :quaternion        quaternion
-                                                                                :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}
+(def scene-graph {:node/id         "root"
+                  :node/components [{:component/type :Camera
+                                     :depth          1000}]
+                  :node/children   [{:node/id            "back"
+                                     :node/size-mode     [ABSOLUTE ABSOLUTE]
+                                     :node/absolute-size [40 40]
+                                     :node/position      [40 0 0]
+                                     :node/align         [0 0.5 0]
+                                     :node/mount-point   [0 0.5 0]
+                                     :node/components    [{:component/type :DOMElement
+                                                           :color          "white"
+                                                           :fontSize       "40px"
+                                                           :lineHeight     "40px"
+                                                           :cursor         "pointer"
+                                                           :textHighlight  "none"
+                                                           :zIndex         "2"
+                                                           :content        "<"}]}
+                                    {:node/id            "next"
+                                     :node/size-mode     [ABSOLUTE ABSOLUTE]
+                                     :node/absolute-size [40 40]
+                                     :node/position      [-40 0 0]
+                                     :node/align         [1 0.5 0]
+                                     :node/mount-point   [1 0.5 0]
+                                     :node/components    [{:component/type :DOMElement
+                                                           :color          "white"
+                                                           :fontSize       "40px"
+                                                           :lineHeight     "40px"
+                                                           :cursor         "pointer"
+                                                           :textHighlight  "none"
+                                                           :zIndex         "2"
+                                                           :content        ">"}]}
+                                    {:node/id          "pager"
+                                     :node/align       [0.5 0.5 0]
+                                     :node/mount-point [0.5 0.5 0]
+                                     :node/children    (for [image-name image-names
+                                                             :let [url-base "http://demo.famo.us.s3.amazonaws.com/hub/apps/carousel/Museo_del_Prado_-_Goya_-_Caprichos_-_No._"
+                                                                   image-url (str url-base image-name)
+                                                                   url (str "url('" image-url "')")
+                                                                   box (FamousBox. (clj->js {:mass 100 :size [100 100 100]}))
+                                                                   anchor (Vec3. 1 0 0)
+                                                                   quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
+                                                            {:node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
+                                                             :node/absolute-size [500 500 0]
+                                                             :node/align         [0.5 0.5]
+                                                             :node/mount-point   [0.5 0.5]
+                                                             :node/origin        [0.5 0.5]
+                                                             :node/components    [{:component/type    :DOMElement
+                                                                                   :backgroundImage   url
+                                                                                   :background-repeat "no-repeat"
+                                                                                   :background-size   "cover"}]
+                                                             :node/physics       {:box               box
+                                                                                  :anchor            anchor
+                                                                                  :spring            (Spring. nil box (clj->js {:period 0.5 :dampingRatio 0.5 :anchor anchor}))
+                                                                                  :quaternion        quaternion
+                                                                                  :rotational-spring (RotationalSpring. nil box (clj->js {:period 1 :dampingRatio 0.2 :anchor quaternion}))}
 
-                                                           })}
-                                  {:node/id            "dots"
-                                   :node/size-mode     [ABSOLUTE ABSOLUTE]
-                                   :node/absolute-size [20 20]
-                                   :node/position      [0 -50 0]
-                                   :node/align         [0.5 1 0]
-                                   :node/mount-point   [0.5 1 0]
-                                   :node/components    [{:onSizeChange (fn [^Float32Array size]
-                                                                           (let [dots (infamous/get-node-by-id "dots")
-                                                                                 dot-nodes (:node/children dots)
-                                                                                 size (IndexedSeq. size 0)
-                                                                                 dotWidth 10
-                                                                                 numPages (count image-names)
-                                                                                 spacing 5
-                                                                                 totalDotSize (+ (* numPages dotWidth)
-                                                                                                 (* spacing (dec numPages)))
-                                                                                 start-x (/ (- (nth size 0) totalDotSize)
-                                                                                            2)]
-                                                                                (doseq [n (-> image-names count range)
-                                                                                        :let [dot-node (:node/famous-node (nth dot-nodes n))]]
-                                                                                       (.. dot-node (setPosition (+ start-x
-                                                                                                                    (* n
-                                                                                                                       (+ dotWidth spacing)))
-                                                                                                                 0
-                                                                                                                 0)))))}]
-                                   :node/children      (for [i (-> image-names count range)]
-                                                            {:node/size-mode     [ABSOLUTE ABSOLUTE]
-                                                             :node/absolute-size [10 10]
-                                                             :node/components    [{:component/type  :DOMElement
-                                                                                   :borderRadius    "15px"
-                                                                                   :border          "2px solid white"
-                                                                                   :backgroundColor (if (= i 0)
-                                                                                                      "white"
-                                                                                                      "transparent")
-                                                                                   :boxSizing       "border-box"}]})}]})
+                                                             })}
+                                    {:node/id            "dots"
+                                     :node/size-mode     [ABSOLUTE ABSOLUTE]
+                                     :node/absolute-size [20 20]
+                                     :node/position      [0 -50 0]
+                                     :node/align         [0.5 1 0]
+                                     :node/mount-point   [0.5 1 0]
+                                     :node/components    [{:onSizeChange (fn [^Float32Array size]
+                                                                             (let [dots (infamous/get-node-by-id "dots")
+                                                                                   dot-nodes (:node/children dots)
+                                                                                   size (IndexedSeq. size 0)
+                                                                                   dotWidth 10
+                                                                                   numPages (count image-names)
+                                                                                   spacing 5
+                                                                                   totalDotSize (+ (* numPages dotWidth)
+                                                                                                   (* spacing (dec numPages)))
+                                                                                   start-x (/ (- (nth size 0) totalDotSize)
+                                                                                              2)]
+                                                                                  (doseq [n (-> image-names count range)
+                                                                                          :let [dot-node (:node/famous-node (nth dot-nodes n))]]
+                                                                                         (.. dot-node (setPosition (+ start-x
+                                                                                                                      (* n
+                                                                                                                         (+ dotWidth spacing)))
+                                                                                                                   0
+                                                                                                                   0)))))}]
+                                     :node/children      (for [i (-> image-names count range)]
+                                                              {:node/size-mode     [ABSOLUTE ABSOLUTE]
+                                                               :node/absolute-size [10 10]
+                                                               :node/components    [{:component/type  :DOMElement
+                                                                                     :borderRadius    "15px"
+                                                                                     :border          "2px solid white"
+                                                                                     :backgroundColor (if (= i 0)
+                                                                                                        "white"
+                                                                                                        "transparent")
+                                                                                     :boxSizing       "border-box"}]})}]})
 
 (defn start []
       (infamous/render-scene-graph scene-graph "body")
