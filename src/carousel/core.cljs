@@ -34,7 +34,7 @@
 (def image-name (reagent/atom (image-names 0)))
 
 (defn image-description []
-      [:h1 {:style {:color "white"}} "Description: " @image-name])
+      [:p {:style {:color "white"}} @image-name])
 
 (reagent/render-component [image-description] (.. js/document (getElementById "react")))
 
@@ -80,7 +80,7 @@
                                                                    anchor (Vec3. 1 0 0)
                                                                    quaternion (.. (Quaternion.) (fromEuler 0 (/ (.. js/Math -PI) -2) 0))]]
                                                             {:node/size-mode     [ABSOLUTE ABSOLUTE ABSOLUTE]
-                                                             :node/absolute-size [500 500 0]
+                                                             :node/absolute-size [100 100 0]
                                                              :node/align         [0.5 0.5]
                                                              :node/mount-point   [0.5 0.5]
                                                              :node/origin        [0.5 0.5]
